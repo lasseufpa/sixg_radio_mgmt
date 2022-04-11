@@ -1,7 +1,6 @@
 import os
 from typing import Tuple
 
-import matplotlib.pyplot as plt
 import numpy as np
 from channel import Channel
 from numpy.random import BitGenerator
@@ -51,7 +50,6 @@ class UE:
         self.buffer_max_lat = buffer_max_lat
         self.buffer = Buffer(max_packets_buffer, buffer_max_lat)
         self.traffic_throughput = traffic_throughput
-        self.windows_size_obs = windows_size_obs
         self.windows_size = windows_size
         self.plots = plots
         self.normalize_obs = normalize_obs
@@ -64,13 +62,8 @@ class UE:
             "avg_lat",
             "pkt_loss",
             "se",
-            "long_term_pkt_thr",
-            "fifth_perc_pkt_thr",
         ]
         self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
-        self.no_windows_hist = {
-            hist_label: np.array([]) for hist_label in self.hist_labels
-        }
         self.number_pkt_loss = np.array([])
         self.rng = rng
 
@@ -153,9 +146,6 @@ class UE:
     ) -> None:
         """
         Update the variables history to enable the record to external files.
-        It creates a tmp_hist that records the history of UE variables without
-        using a windows calculation and it is used as basis to calculate the
-        hist variable using windows average.
         """
         hist_vars = [
             self.packets_to_mbps(self.packet_size, packets_received),
@@ -166,69 +156,32 @@ class UE:
             pkt_loss,
             self.se[step_number],
         ]
-        normalize_factors = (
-            [100, 100, 100, 1, self.buffer_max_lat, 1, 100, 100, 100]
-            if self.normalize_obs
-            else np.ones(len(self.hist.keys()))
-        )
         self.number_pkt_loss = np.append(self.number_pkt_loss, pkt_loss)
 
-        # Hist with no windows for log (not used in the observation space)
         idx = (
             slice(-(self.windows_size - 1), None)
             if self.windows_size != 1
             else slice(0, 0)
         )
-        for i, var in enumerate(self.no_windows_hist.items()):
+        for i, var in enumerate(self.hist.items()):
             if var[0] == "pkt_loss":
                 buffer_pkts = (
                     np.sum(self.buffer.buffer)
-                    + np.sum(self.no_windows_hist["pkt_snt"][idx])
+                    + np.sum(self.hist["pkt_snt"][idx])
                     + np.sum(self.number_pkt_loss[idx])
-                    - np.sum(self.no_windows_hist["pkt_rcv"][idx])
+                    - np.sum(self.hist["pkt_rcv"][idx])
                 )
-                den = (
-                    np.sum(self.no_windows_hist["pkt_rcv"][idx])
-                    + hist_vars[0]
-                    + buffer_pkts
-                )
-                self.no_windows_hist[var[0]] = (
+                den = np.sum(self.hist["pkt_rcv"][idx]) + hist_vars[0] + buffer_pkts
+                self.hist[var[0]] = (
                     np.append(
-                        self.no_windows_hist[var[0]],
+                        self.hist[var[0]],
                         (np.sum(self.number_pkt_loss[idx]) + hist_vars[i]) / den,
                     )
                     if den != 0
-                    else np.append(self.no_windows_hist[var[0]], 0)
-                )
-            elif var[0] == "long_term_pkt_thr":
-                self.no_windows_hist[var[0]] = np.append(
-                    self.no_windows_hist[var[0]],
-                    np.sum(self.no_windows_hist["pkt_thr"][-self.windows_size :])
-                    / self.no_windows_hist["pkt_thr"][-self.windows_size :].shape[0],
-                )
-            elif var[0] == "fifth_perc_pkt_thr":
-                self.no_windows_hist[var[0]] = np.append(
-                    self.no_windows_hist[var[0]],
-                    np.percentile(
-                        self.no_windows_hist["pkt_thr"][-self.windows_size :], 5
-                    ),
+                    else np.append(self.hist[var[0]], 0)
                 )
             else:
-                self.no_windows_hist[var[0]] = np.append(
-                    self.no_windows_hist[var[0]], hist_vars[i]
-                )
-
-        # Hist calculation to be used as observation space (using windows and normalization if applied)
-        idx_obs = slice(-(self.windows_size_obs), None)
-        for i, var in enumerate(self.hist.items()):
-            value = (
-                np.mean(self.no_windows_hist[var[0]][idx_obs])
-                if self.no_windows_hist[var[0]].shape[0] != 0
-                else 0
-            )
-            self.hist[var[0]] = np.append(
-                self.hist[var[0]], value / normalize_factors[i]
-            )
+                self.hist[var[0]] = np.append(self.hist[var[0]], hist_vars[i])
 
     def save_hist(self) -> None:
         """
@@ -242,7 +195,7 @@ class UE:
         except OSError:
             pass
 
-        np.savez_compressed((path + "ue{}").format(self.id), **self.no_windows_hist)
+        np.savez_compressed((path + "ue{}").format(self.id), **self.hist)
         if self.plots:
             UE.plot_metrics(self.bs_name, self.trial_number, self.id, self.root_path)
 
@@ -266,60 +219,8 @@ class UE:
                 data.f.avg_lat,
                 data.f.pkt_loss,
                 data.f.se,
-                data.f.long_term_pkt_thr,
-                data.f.fifth_perc_pkt_thr,
             ]
         )
-
-    @staticmethod
-    def plot_metrics(
-        bs_name: str, trial_number: int, ue_id: int, root_path: str = "."
-    ) -> None:
-        """
-        Plot UE performance obtained over a specific trial. Read the
-        information from external file.
-        """
-        hist = UE.read_hist(bs_name, trial_number, ue_id, root_path)
-
-        title_labels = [
-            "Received Throughput",
-            "Sent Throughput",
-            "Throughput Capacity",
-            "Buffer Occupancy Rate",
-            "Average Buffer Latency",
-            "Packet Loss Rate",
-        ]
-        x_label = "Iteration [n]"
-        y_labels = [
-            "Throughput (Mbps)",
-            "Throughput (Mbps)",
-            "Throughput (Mbps)",
-            "Occupancy rate",
-            "Latency (ms)",
-            "Packet loss rate",
-        ]
-        w, h = plt.figaspect(0.6)
-        fig = plt.figure(figsize=(w, h))
-        fig.suptitle("Trial {}, UE {}".format(trial_number, ue_id))
-
-        for i in np.arange(len(title_labels)):
-            ax = fig.add_subplot(3, 2, i + 1)
-            ax.set_title(title_labels[i])
-            ax.set_xlabel(x_label)
-            ax.set_ylabel(y_labels[i])
-            ax.scatter(np.arange(hist[i].shape[0]), hist[i])
-            ax.grid()
-        fig.tight_layout()
-        fig.savefig(
-            "{}/hist/{}/trial{}/ues/ue{}.png".format(
-                root_path, bs_name, trial_number, ue_id
-            ),
-            bbox_inches="tight",
-            pad_inches=0,
-            format="png",
-            dpi=100,
-        )
-        plt.close()
 
     @staticmethod
     def packets_to_mbps(packet_size, number_packets):
