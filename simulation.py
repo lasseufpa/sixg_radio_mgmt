@@ -1,3 +1,6 @@
+from ues import UEs
+
+
 class Simulation:
     def __init__(self) -> None:
         number_basestations = 1
@@ -14,7 +17,7 @@ class Simulation:
         max_number_steps = 2000  # Maximum number of steps per simulated episode
         max_number_episodes = 1  # Maximum number of simulated episodes
 
-        ues = UEs(max_buffer_latencies, max_buffer_pkts, pkt_sizes)
+        ues = UEs(max_number_ues, max_buffer_latencies, max_buffer_pkts, pkt_sizes)
         slices = Slices(max_number_ues_per_slice, ues.ues_indexes)
         basestations = Basestations(
             number_basestations,

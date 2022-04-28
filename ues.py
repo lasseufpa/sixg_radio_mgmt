@@ -6,7 +6,7 @@ import numpy as np
 from buffer import Buffer
 
 
-class UES:
+class UEs:
     """
     Class containing the UEs functions. Each UE have a buffer and Channel values
     for specific trials. Each UE will be assigned to a slice.
@@ -38,11 +38,20 @@ class UES:
             np.sum(basestation_decision * spectral_efficiencies, axis=1) / pkt_sizes
         )
 
-    def add_ue(ue_indexes: np.array) -> None:
-        pass
-
-    def remove_ue():
-        pass
+    def update_ues(
+        self,
+        ue_indexes: np.array,
+        max_buffer_latencies: np.array,
+        max_buffer_pkts: np.array,
+        pkt_sizes: np.array,
+    ) -> None:
+        self.max_buffer_latencies[ue_indexes] = max_buffer_latencies
+        self.max_buffer_pkts[ue_indexes] = max_buffer_pkts
+        self.pkt_sizes[ue_indexes] = pkt_sizes
+        for ue_index in ue_indexes:
+            self.buffers[ue_index] = Buffer(
+                max_buffer_pkts[ue_index], max_buffer_latencies[ue_index]
+            )
 
     def step(
         self,
@@ -67,16 +76,24 @@ class UES:
                 buffer.get_buffer_occupancy() for buffer in self.buffers
             ],
             "buffer_latencies": [buffer.get_avg_delay() for buffer in self.buffers],
-            "dropped_pkts": [buffer.dropped_packets() for buffer in self.buffers],
+            "dropped_pkts": [buffer.dropped_packets for buffer in self.buffers],
         }
 
 
 def main():
-    ues = UES(2, [10, 10], [20, 20], [1, 1])
+    ues = UEs(
+        max_number_ues=2,
+        max_buffer_latencies=[10, 10],
+        max_buffer_pkts=[20, 10],
+        pkt_sizes=[1, 1],
+    )
     sched_decision = np.array([[[1, 0, 1, 1, 0], [0, 1, 0, 0, 1]]])
-    traffics = np.array([2, 2])
-    sprectral_efficiences = np.array([[[1, 1, 1, 1, 1], [1, 1, 1, 1, 1]]])
-    ues.step(sched_decision, traffics, sprectral_efficiences)
+    traffics = np.array([4, 4])
+    spectral_efficiences = np.array([[[1, 1, 1, 1, 1], [1, 1, 1, 1, 1]]])
+    steps = 10
+    for i in np.arange(steps):
+        info = ues.step(sched_decision, traffics, spectral_efficiences)
+        print("Step {}:\n{}".format(i, info))
 
 
 if __name__ == "__main__":
