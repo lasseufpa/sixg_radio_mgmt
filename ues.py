@@ -30,12 +30,13 @@ class UEs:
 
     @staticmethod
     def get_pkt_throughputs(
-        basestation_decision: np.array,
+        sched_decision: np.array,
         spectral_efficiencies: np.array,
         pkt_sizes: np.array,
     ) -> np.array:
         return np.floor(
-            np.sum(basestation_decision * spectral_efficiencies, axis=1) / pkt_sizes
+            np.sum(np.sum(sched_decision * spectral_efficiencies, axis=2), axis=0)
+            / pkt_sizes
         )
 
     def update_ues(
@@ -59,15 +60,14 @@ class UEs:
         traffics: np.array,
         spectral_efficiencies: np.array,
     ) -> dict:
-        for i, basestation_decision in enumerate(sched_decision):
-            pkt_throughputs = self.get_pkt_throughputs(
-                basestation_decision, spectral_efficiencies[i], self.pkt_sizes
-            )
-            pkt_incomings = np.floor(traffics / self.pkt_sizes)
+        pkt_throughputs = self.get_pkt_throughputs(
+            sched_decision, spectral_efficiencies, self.pkt_sizes
+        )
+        pkt_incomings = np.floor(traffics / self.pkt_sizes)
 
-            for j in np.arange(self.max_number_ues):
-                self.buffers[j].receive_packets(pkt_incomings[j])
-                self.buffers[j].send_packets(pkt_throughputs[j])
+        for i in np.arange(self.max_number_ues):
+            self.buffers[i].receive_packets(pkt_incomings[i])
+            self.buffers[i].send_packets(pkt_throughputs[i])
         return {
             "pkt_incoming": pkt_incomings,
             "pkt_throughputs": pkt_throughputs,
@@ -82,14 +82,24 @@ class UEs:
 
 def main():
     ues = UEs(
-        max_number_ues=2,
-        max_buffer_latencies=[10, 10],
-        max_buffer_pkts=[20, 10],
-        pkt_sizes=[1, 1],
+        max_number_ues=4,
+        max_buffer_latencies=[10, 10, 10, 10],
+        max_buffer_pkts=[20, 10, 20, 10],
+        pkt_sizes=[1, 1, 1, 1],
     )
-    sched_decision = np.array([[[1, 0, 1, 1, 0], [0, 1, 0, 0, 1]]])
-    traffics = np.array([4, 4])
-    spectral_efficiences = np.array([[[1, 1, 1, 1, 1], [1, 1, 1, 1, 1]]])
+    sched_decision = np.array(
+        [
+            [[1, 0, 1, 1, 0], [0, 1, 0, 0, 1], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]],
+            [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [1, 0, 1, 1, 0], [0, 1, 0, 0, 1]],
+        ]
+    )
+    traffics = np.array([4, 4, 4, 4])
+    spectral_efficiences = np.array(
+        [
+            [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]],
+            [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]],
+        ]
+    )
     steps = 10
     for i in np.arange(steps):
         info = ues.step(sched_decision, traffics, spectral_efficiences)
