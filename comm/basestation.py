@@ -7,9 +7,8 @@ import numpy as np
 from gym import spaces
 from numpy.random import BitGenerator
 from numpy.testing._private.utils import requires_memory
-from tqdm import tqdm
-
 from slice import Slice
+from tqdm import tqdm
 from ue import UE
 
 

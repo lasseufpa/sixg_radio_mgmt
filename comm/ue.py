@@ -2,10 +2,9 @@ import os
 from typing import Tuple
 
 import numpy as np
+from buffer import Buffer
 from channel import Channel
 from numpy.random import BitGenerator
-
-from buffer import Buffer
 
 
 class UE:

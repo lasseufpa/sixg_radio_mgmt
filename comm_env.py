@@ -1,16 +1,8 @@
-from xmlrpc.client import Boolean
-
 import gym
 import numpy as np
 from tqdm import tqdm
 
-from basestations import Basestations
-from channel import Channel
-from metrics import Metrics
-from mobility import Mobility
-from slices import Slices
-from traffic import Traffic
-from ues import UEs
+from comm import Basestations, Channel, Metrics, Mobility, Slices, Traffic, UEs
 
 
 class CommunicationEnv(gym.Env):
@@ -96,7 +88,7 @@ class CommunicationEnv(gym.Env):
         return 0
 
     @staticmethod
-    def verify_sched_decision(sched_decision: np.array) -> Boolean:
+    def verify_sched_decision(sched_decision: np.array) -> bool:
         if np.sum(np.sum(sched_decision, axis=1) > 1) > 0:
             raise Exception(
                 "Scheduling decision allocated the same RB for more than one UE"

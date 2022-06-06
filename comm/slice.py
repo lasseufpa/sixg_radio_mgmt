@@ -3,7 +3,6 @@ from itertools import cycle
 
 import matplotlib.pyplot as plt
 import numpy as np
-
 from ue import UE
 
 
