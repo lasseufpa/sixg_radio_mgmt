@@ -24,7 +24,7 @@ class CommunicationEnv(gym.Env):
 
         self.step_number = 0  # Initial simulation step
         self.episode_number = 1  # Initial episode
-        self.max_number_steps = 2000  # Maximum number of steps per simulated episode
+        self.max_number_steps = 10  # Maximum number of steps per simulated episode
         self.max_number_episodes = 1  # Maximum number of simulated episodes
 
         self.hist_root_path = "./"
@@ -72,7 +72,6 @@ class CommunicationEnv(gym.Env):
             {
                 "mobility": mobilities,
                 "spectral_efficiencies": spectral_efficiencies,
-                "traffics": traffics,
                 "rewards": reward,
             }
         )

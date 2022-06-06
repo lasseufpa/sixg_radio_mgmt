@@ -1,6 +1,7 @@
 import os
 from typing import Dict
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -58,9 +59,60 @@ class Metrics:
         return data_dict
 
 
+class Plots:
+    @staticmethod
+    def plot(
+        xlabel: str,
+        x_data: np.array,
+        ylabel: str,
+        y_data: np.array,
+        y_data_label: list,
+        fig_name: str,
+        metric: str,
+    ) -> None:
+        w, h = plt.figaspect(0.6)
+        fig = plt.figure(figsize=(w, h))
+        plt.xlabel(xlabel, fontsize=14)
+        plt.ylabel(ylabel, fontsize=14)
+        plt.grid()
+        for i, y in enumerate(np.arange(y_data.shape[1])):
+            plt.plot(x_data, y_data[:, i], label=y_data_label[i])
+        fig.tight_layout()
+        plt.xticks(fontsize=12)
+        plt.legend(fontsize=12)
+        os.makedirs("./results", exist_ok=True)
+        fig.savefig(
+            "./results/{}_{}.pdf".format(fig_name, metric),
+            # bbox_inches="tight",
+            pad_inches=0,
+            format="pdf",
+            dpi=1000,
+        )
+        plt.close()
+
+
 def main():
     data = Metrics.read("./", "test", 1)
-    print(data)
+
+    metrics = [
+        "pkt_incoming",
+        "pkt_throughputs",
+        "pkt_effective_thr",
+        "buffer_occupancies",
+        "buffer_latencies",
+        "dropped_pkts",
+    ]
+    # traffics
+    for metric in metrics:
+        Plots.plot(
+            "Step n",
+            np.arange(data[metric].shape[0]),
+            "Packets",
+            data[metric],
+            ["ue {}".format(i) for i in np.arange(1, data[metric].shape[1] + 1)],
+            "test",
+            metric,
+        )
 
 
 if __name__ == "__main__":
