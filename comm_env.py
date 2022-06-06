@@ -6,6 +6,7 @@ from tqdm import tqdm
 
 from basestations import Basestations
 from channel import Channel
+from metrics import Metrics
 from mobility import Mobility
 from slices import Slices
 from traffic import Traffic
@@ -30,9 +31,12 @@ class CommunicationEnv(gym.Env):
         self.num_rbs_available = np.array([2])
 
         self.step_number = 0  # Initial simulation step
-        self.episode = 1  # Initial episode
+        self.episode_number = 1  # Initial episode
         self.max_number_steps = 2000  # Maximum number of steps per simulated episode
         self.max_number_episodes = 1  # Maximum number of simulated episodes
+
+        self.hist_root_path = "./"
+        self.simu_name = "test"
 
         self.ues = UEs(
             self.max_number_ues,
@@ -58,6 +62,7 @@ class CommunicationEnv(gym.Env):
             self.num_rbs_available,
         )
         self.traffic = Traffic(self.max_number_ues)
+        self.metrics_hist = Metrics(self.hist_root_path)
 
     def step(self, sched_decision: np.array) -> None:
         """
@@ -69,10 +74,26 @@ class CommunicationEnv(gym.Env):
         traffics = self.traffic.step()
 
         if self.verify_sched_decision(sched_decision):
-            self.ues.step(sched_decision, traffics, spectral_efficiencies)
+            step_hist = self.ues.step(sched_decision, traffics, spectral_efficiencies)
+        reward = self.calculate_reward()
+        step_hist.update(
+            {
+                "mobility": mobilities,
+                "spectral_efficiencies": spectral_efficiencies,
+                "traffics": traffics,
+                "rewards": reward,
+            }
+        )
+        self.metrics_hist.step(step_hist)
+        self.step_number += 1
+
+        return (step_hist, reward, self.step_number == self.max_number_steps, {})
 
     def reset(self) -> None:
         pass
+
+    def calculate_reward(self) -> float:
+        return 0
 
     @staticmethod
     def verify_sched_decision(sched_decision: np.array) -> Boolean:
@@ -92,6 +113,7 @@ def main():
         for step_number in tqdm(np.arange(comm_env.max_number_steps)):
             comm_env.step(sched_decision)
             if step_number == comm_env.max_number_steps - 1:
+                comm_env.metrics_hist.save(comm_env.simu_name, comm_env.episode_number)
                 comm_env.reset()
 
 

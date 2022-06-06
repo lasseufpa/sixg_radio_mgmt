@@ -1,6 +1,9 @@
 # Vs code files
 .vscode
 
+# Metric hist
+hist/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
