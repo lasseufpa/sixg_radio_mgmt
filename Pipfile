@@ -9,6 +9,8 @@ isort = "*"
 flake8 = "*"
 pre-commit = "*"
 numpy = "*"
+gym = "*"
+tqdm = "*"
 
 [dev-packages]
 

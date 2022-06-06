@@ -2,11 +2,11 @@ import numpy as np
 
 
 class Traffic:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, max_number_ues) -> None:
+        self.max_number_ues = max_number_ues
 
     def step(self) -> np.array:
-        return np.array([1, 1])
+        return np.ones(self.max_number_ues)
 
 
 def main():
