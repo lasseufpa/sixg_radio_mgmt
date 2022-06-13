@@ -10,17 +10,17 @@ class CommunicationEnv(gym.Env):
     metadata = {"render.modes": ["human"]}
 
     def __init__(self) -> None:
-        self.max_number_basestations = 1
+        self.max_number_basestations = 2
         self.max_number_slices = 1
         self.max_number_ues = 2
         self.max_buffer_latencies = [10, 10]
         self.max_buffer_pkts = [20, 10]
-        self.bandwidths = [100]  # In MHz
-        self.carrier_frequencies = [28]  # In GHz
+        self.bandwidths = [100, 100]  # In MHz
+        self.carrier_frequencies = [28, 28]  # In GHz
         self.pkt_sizes = [1]  # In bits
-        self.basestation_slice_assoc = np.array([[1]])
+        self.basestation_slice_assoc = np.array([[1], [1]])
         self.slice_ue_association = np.array([[1, 1]])
-        self.num_rbs_available = np.array([2])
+        self.num_rbs_available = np.array([2, 2])
 
         self.step_number = 0  # Initial simulation step
         self.episode_number = 1  # Initial episode
@@ -104,7 +104,7 @@ class CommunicationEnv(gym.Env):
 
 def main():
     comm_env = CommunicationEnv()
-    sched_decision = np.array([[[1, 0], [0, 1]]])
+    sched_decision = np.array([[[1, 0], [0, 0]], [[0, 0], [1, 0]]])
     comm_env.reset()
     for episode in np.arange(1, comm_env.max_number_episodes + 1):
         print("Episode ", episode)
