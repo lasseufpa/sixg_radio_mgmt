@@ -19,7 +19,7 @@ class CommunicationEnv(gym.Env):
         self.carrier_frequencies = [28, 28]  # In GHz
         self.pkt_sizes = [1]  # In bits
         self.basestation_slice_assoc = np.array([[1], [1]])
-        self.slice_ue_assoc = np.array([[1, 1]])
+        self.slice_ue_assoc = np.array([[1, 1], [1, 1]])
         self.basestation_ue_assoc = np.array([[1, 0], [0, 1]])
         self.num_available_rbs = np.array([2, 2])
 
@@ -44,6 +44,7 @@ class CommunicationEnv(gym.Env):
             self.max_number_basestations,
             self.max_number_slices,
             self.basestation_slice_assoc,
+            self.basestation_ue_assoc,
             self.bandwidths,
             self.carrier_frequencies,
             self.num_available_rbs,

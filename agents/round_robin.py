@@ -1,6 +1,7 @@
 import numpy as np
-from agent import Agent
 from matplotlib.style import available
+
+from agents.agent import Agent
 
 
 class RoundRobin(Agent):
@@ -26,7 +27,7 @@ class RoundRobin(Agent):
                 if basestation_ue_assoc[basestation, ue_idx] == 1:
                     allocation_rbs[basestation][ue_idx][rb_idx] += 1
                     rb_idx += 1
-                    ue_idx += 1 if ue_idx + 1 != self.max_number_ues else -ue_idx
+                ue_idx += 1 if ue_idx + 1 != self.max_number_ues else -ue_idx
 
         return allocation_rbs
 

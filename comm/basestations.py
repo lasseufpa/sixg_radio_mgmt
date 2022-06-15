@@ -7,6 +7,7 @@ class Basestations:
         max_number_basestations: int,
         max_number_slices: int,
         basestation_slice_assoc: np.array,
+        basestation_ue_assoc: np.array,
         bandwidths: np.array,
         carrier_frequencies: np.array,
         num_available_rbs: np.array,
@@ -16,6 +17,7 @@ class Basestations:
         self.basestation_slice_assoc = (
             basestation_slice_assoc  # Matrix with dimensions |basestations|x|slices|
         )
+        self.basestation_ue_assoc = basestation_ue_assoc
         self.bandwidths = bandwidths
         self.carrier_frequencies = carrier_frequencies
         self.num_available_rbs = num_available_rbs
@@ -26,8 +28,10 @@ class Basestations:
     def update_assoc(
         self,
         basestation_slice_assoc: np.array,
+        basestation_ue_assoc: np.array,
     ) -> None:
         self.basestation_slice_assoc = basestation_slice_assoc
+        self.basestation_ue_assoc = basestation_ue_assoc
 
     def get_number_slices_per_basestation(self) -> np.array:
         return np.sum(self.basestation_slice_assoc, axis=1)
