@@ -32,7 +32,7 @@ class UEs:
         pkt_sizes: np.array,
     ) -> np.array:
         return np.floor(
-            np.sum(sched_decision * spectral_efficiencies, axis=0) / pkt_sizes
+            np.sum(sched_decision * spectral_efficiencies, axis=1) / pkt_sizes
         )
 
     def update_ues(
