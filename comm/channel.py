@@ -6,15 +6,15 @@ class Channel:
         self,
         max_number_ues: int,
         max_number_basestations: int,
-        num_rbs_available: np.array,
+        num_available_rbs: np.array,
     ) -> None:
         self.max_number_ues = max_number_ues
         self.max_number_basestations = max_number_basestations
-        self.num_rbs_available = num_rbs_available
+        self.num_available_rbs = num_available_rbs
 
     def step(self, mobilities: np.array) -> np.array:
         spectral_efficiencies = [
-            np.ones((self.max_number_ues, self.num_rbs_available[i]))
+            np.ones((self.max_number_ues, self.num_available_rbs[i]))
             for i in np.arange(self.max_number_basestations)
         ]
         return spectral_efficiencies

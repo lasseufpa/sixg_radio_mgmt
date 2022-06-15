@@ -9,7 +9,7 @@ class Basestations:
         basestation_slice_assoc: np.array,
         bandwidths: np.array,
         carrier_frequencies: np.array,
-        num_rbs_available: np.array,
+        num_available_rbs: np.array,
     ) -> None:
         self.max_number_basestations = max_number_basestations
         self.max_number_slices = max_number_slices
@@ -18,12 +18,12 @@ class Basestations:
         )
         self.bandwidths = bandwidths
         self.carrier_frequencies = carrier_frequencies
-        self.num_rbs_available = num_rbs_available
+        self.num_available_rbs = num_available_rbs
 
-    def get_associations(self) -> np.array:
+    def get_assoc(self) -> np.array:
         return self.basestation_slice_assoc
 
-    def update_associations(
+    def update_assoc(
         self,
         basestation_slice_assoc: np.array,
     ) -> None:
@@ -41,7 +41,7 @@ def main():
             basestations.get_number_slices_per_basestation()
         )
     )
-    basestations.update_associations([[0, 1, 1, 0], [1, 0, 0, 1]])
+    basestations.update_assoc([[0, 1, 1, 0], [1, 0, 0, 1]])
     print(
         "Number of slices per basestation: {}".format(
             basestations.get_number_slices_per_basestation()

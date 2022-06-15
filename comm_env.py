@@ -19,8 +19,9 @@ class CommunicationEnv(gym.Env):
         self.carrier_frequencies = [28, 28]  # In GHz
         self.pkt_sizes = [1]  # In bits
         self.basestation_slice_assoc = np.array([[1], [1]])
-        self.slice_ue_association = np.array([[1, 1]])
-        self.num_rbs_available = np.array([2, 2])
+        self.slice_ue_assoc = np.array([[1, 1]])
+        self.basestation_ue_assoc = np.array([[1, 0], [0, 1]])
+        self.num_available_rbs = np.array([2, 2])
 
         self.step_number = 0  # Initial simulation step
         self.episode_number = 1  # Initial episode
@@ -37,7 +38,7 @@ class CommunicationEnv(gym.Env):
             self.pkt_sizes,
         )
         self.slices = Slices(
-            self.max_number_slices, self.max_number_ues, self.slice_ue_association
+            self.max_number_slices, self.max_number_ues, self.slice_ue_assoc
         )
         self.basestations = Basestations(
             self.max_number_basestations,
@@ -45,18 +46,18 @@ class CommunicationEnv(gym.Env):
             self.basestation_slice_assoc,
             self.bandwidths,
             self.carrier_frequencies,
-            self.num_rbs_available,
+            self.num_available_rbs,
         )
         self.mobility = Mobility(self.max_number_ues)
         self.channel = Channel(
             self.max_number_ues,
             self.max_number_basestations,
-            self.num_rbs_available,
+            self.num_available_rbs,
         )
         self.traffic = Traffic(self.max_number_ues)
         self.metrics_hist = Metrics(self.hist_root_path)
 
-    def step(self, sched_decision: np.array) -> None:
+    def step(self, sched_decision: list) -> None:
         """
         sched_decisions is a matrix with dimensions BxNxM where B represents
         the number of basestations, N represents the maximum number of UEs
@@ -95,16 +96,17 @@ class CommunicationEnv(gym.Env):
 
     @staticmethod
     def verify_sched_decision(sched_decision: np.array) -> bool:
-        if np.sum(np.sum(sched_decision, axis=1) > 1) > 0:
-            raise Exception(
-                "Scheduling decision allocated the same RB for more than one UE"
-            )
+        for basestation_sched in sched_decision:
+            if np.sum(np.sum(basestation_sched, axis=0) > 1) > 0:
+                raise Exception(
+                    "Scheduling decision allocated the same RB for more than one UE"
+                )
         return True
 
 
 def main():
     comm_env = CommunicationEnv()
-    sched_decision = np.array([[[1, 0], [0, 0]], [[0, 0], [1, 0]]])
+    sched_decision = [[[1, 0], [0, 0]], [[0, 0], [1, 0]]]
     comm_env.reset()
     for episode in np.arange(1, comm_env.max_number_episodes + 1):
         print("Episode ", episode)
