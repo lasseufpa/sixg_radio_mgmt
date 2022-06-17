@@ -20,8 +20,11 @@ class Metrics:
             "dropped_pkts": [],
             "mobility": [],
             "spectral_efficiencies": [],
-            "traffics": [],
-            "rewards": [],
+            "basestation_ue_assoc": [],
+            "basestation_slice_assoc": [],
+            "slice_ue_assoc": [],
+            "sched_decision": [],
+            "reward": [],
         }
 
     def step(self, hist) -> None:
@@ -53,8 +56,11 @@ class Metrics:
             "dropped_pkts": data.f.dropped_pkts,
             "mobility": data.f.mobility,
             "spectral_efficiencies": data.f.spectral_efficiencies,
-            "traffics": data.f.traffics,
-            "rewards": data.f.rewards,
+            "basestation_ue_assoc": data.f.basestation_ue_assoc,
+            "basestation_slice_assoc": data.f.basestation_slice_assoc,
+            "slice_ue_assoc": data.f.slice_ue_assoc,
+            "sched_decision": data.f.sched_decision,
+            "reward": data.f.reward,
         }
         return data_dict
 

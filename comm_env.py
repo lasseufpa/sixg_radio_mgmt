@@ -1,3 +1,5 @@
+from typing import Callable
+
 import gym
 import numpy as np
 from tqdm import tqdm
@@ -9,7 +11,11 @@ class CommunicationEnv(gym.Env):
 
     metadata = {"render.modes": ["human"]}
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        obs_space_format: Callable[[dict], np.array] = None,
+        calculate_reward: Callable[[dict], float] = None,
+    ) -> None:
         self.max_number_basestations = 2
         self.max_number_slices = 1
         self.max_number_ues = 2
@@ -22,6 +28,16 @@ class CommunicationEnv(gym.Env):
         self.slice_ue_assoc = np.array([[1, 1], [1, 1]])
         self.basestation_ue_assoc = np.array([[1, 0], [0, 1]])
         self.num_available_rbs = np.array([2, 2])
+        self.obs_space_format = (
+            obs_space_format
+            if obs_space_format is not None
+            else self.obs_space_format_default
+        )
+        self.calculate_reward = (
+            calculate_reward
+            if calculate_reward is not None
+            else self.calculate_reward_default
+        )
 
         self.step_number = 0  # Initial simulation step
         self.episode_number = 1  # Initial episode
@@ -76,24 +92,45 @@ class CommunicationEnv(gym.Env):
 
         if self.verify_sched_decision(sched_decision):
             step_hist = self.ues.step(sched_decision, traffics, spectral_efficiencies)
-        reward = self.calculate_reward()
         step_hist.update(
             {
                 "mobility": mobilities,
                 "spectral_efficiencies": spectral_efficiencies,
-                "rewards": reward,
+                "basestation_ue_assoc": self.basestation_ue_assoc,
+                "basestation_slice_assoc": self.basestation_slice_assoc,
+                "slice_ue_assoc": self.slice_ue_assoc,
+                "sched_decision": sched_decision,
             }
         )
-        self.metrics_hist.step(step_hist)
         self.step_number += 1
+        obs = self.obs_space_format(step_hist)
+        reward = self.calculate_reward(obs)
 
-        return (step_hist, reward, self.step_number == self.max_number_steps, {})
+        step_hist.update({"reward": reward})
+        self.metrics_hist.step(step_hist)
+
+        return (
+            obs,
+            reward,
+            self.step_number == self.max_number_steps,
+            {},
+        )
 
     def reset(self) -> None:
-        pass
+        obs = {
+            "basestation_ue_assoc": self.basestation_ue_assoc,
+            "basestation_slice_assoc": self.basestation_slice_assoc,
+            "slice_ue_assoc": self.slice_ue_assoc,
+        }
 
-    def calculate_reward(self) -> float:
+        return self.obs_space_format(obs)
+
+    def calculate_reward_default(self) -> float:
         return 0
+
+    @staticmethod
+    def obs_space_format_default(obs_space) -> np.array:
+        return obs_space
 
     @staticmethod
     def verify_sched_decision(sched_decision: np.array) -> bool:
