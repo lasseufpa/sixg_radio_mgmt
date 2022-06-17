@@ -28,6 +28,15 @@ class CommunicationEnv(gym.Env):
         self.slice_ue_assoc = np.array([[1, 1], [1, 1]])
         self.basestation_ue_assoc = np.array([[1, 0], [0, 1]])
         self.num_available_rbs = np.array([2, 2])
+
+        self.step_number = 0  # Initial simulation step
+        self.episode_number = 1  # Initial episode
+        self.max_number_steps = 10  # Maximum number of steps per simulated episode
+        self.max_number_episodes = 1  # Maximum number of simulated episodes
+
+        self.hist_root_path = "./"
+        self.simu_name = "test"
+
         self.obs_space_format = (
             obs_space_format
             if obs_space_format is not None
@@ -39,40 +48,7 @@ class CommunicationEnv(gym.Env):
             else self.calculate_reward_default
         )
 
-        self.step_number = 0  # Initial simulation step
-        self.episode_number = 1  # Initial episode
-        self.max_number_steps = 10  # Maximum number of steps per simulated episode
-        self.max_number_episodes = 1  # Maximum number of simulated episodes
-
-        self.hist_root_path = "./"
-        self.simu_name = "test"
-
-        self.ues = UEs(
-            self.max_number_ues,
-            self.max_buffer_latencies,
-            self.max_buffer_pkts,
-            self.pkt_sizes,
-        )
-        self.slices = Slices(
-            self.max_number_slices, self.max_number_ues, self.slice_ue_assoc
-        )
-        self.basestations = Basestations(
-            self.max_number_basestations,
-            self.max_number_slices,
-            self.basestation_slice_assoc,
-            self.basestation_ue_assoc,
-            self.bandwidths,
-            self.carrier_frequencies,
-            self.num_available_rbs,
-        )
-        self.mobility = Mobility(self.max_number_ues)
-        self.channel = Channel(
-            self.max_number_ues,
-            self.max_number_basestations,
-            self.num_available_rbs,
-        )
-        self.traffic = Traffic(self.max_number_ues)
-        self.metrics_hist = Metrics(self.hist_root_path)
+        self.create_scenario()
 
     def step(self, sched_decision: list) -> None:
         """
@@ -117,6 +93,7 @@ class CommunicationEnv(gym.Env):
         )
 
     def reset(self) -> None:
+        self.create_scenario()
         obs = {
             "basestation_ue_assoc": self.basestation_ue_assoc,
             "basestation_slice_assoc": self.basestation_slice_assoc,
@@ -140,6 +117,34 @@ class CommunicationEnv(gym.Env):
                     "Scheduling decision allocated the same RB for more than one UE"
                 )
         return True
+
+    def create_scenario(self) -> None:
+        self.ues = UEs(
+            self.max_number_ues,
+            self.max_buffer_latencies,
+            self.max_buffer_pkts,
+            self.pkt_sizes,
+        )
+        self.slices = Slices(
+            self.max_number_slices, self.max_number_ues, self.slice_ue_assoc
+        )
+        self.basestations = Basestations(
+            self.max_number_basestations,
+            self.max_number_slices,
+            self.basestation_slice_assoc,
+            self.basestation_ue_assoc,
+            self.bandwidths,
+            self.carrier_frequencies,
+            self.num_available_rbs,
+        )
+        self.mobility = Mobility(self.max_number_ues)
+        self.channel = Channel(
+            self.max_number_ues,
+            self.max_number_basestations,
+            self.num_available_rbs,
+        )
+        self.traffic = Traffic(self.max_number_ues)
+        self.metrics_hist = Metrics(self.hist_root_path)
 
 
 def main():
