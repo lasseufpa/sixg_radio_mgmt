@@ -2,6 +2,7 @@ from typing import Callable
 
 import gym
 import numpy as np
+import yaml
 from tqdm import tqdm
 
 from comm import Basestations, Channel, Metrics, Mobility, Slices, Traffic, UEs
@@ -13,29 +14,39 @@ class CommunicationEnv(gym.Env):
 
     def __init__(
         self,
-        obs_space_format: Callable[[dict], np.array] = None,
+        config_file: str = "simple",
+        obs_space_format: Callable[[dict], list] = None,
         calculate_reward: Callable[[dict], float] = None,
     ) -> None:
-        self.max_number_basestations = 2
-        self.max_number_slices = 1
-        self.max_number_ues = 2
-        self.max_buffer_latencies = [10, 10]
-        self.max_buffer_pkts = [20, 10]
-        self.bandwidths = [100, 100]  # In MHz
-        self.carrier_frequencies = [28, 28]  # In GHz
-        self.pkt_sizes = [1]  # In bits
-        self.basestation_slice_assoc = np.array([[1], [1]])
-        self.slice_ue_assoc = np.array([[1, 1], [1, 1]])
-        self.basestation_ue_assoc = np.array([[1, 0], [0, 1]])
-        self.num_available_rbs = np.array([2, 2])
+
+        with open("./env_config/{}.yml".format(config_file)) as file:
+            data = yaml.safe_load(file)
+
+        self.max_number_basestations = data["basestations"]["max_number_basestations"]
+        self.bandwidths = data["basestations"]["bandwidths"]  # In MHz
+        self.carrier_frequencies = data["basestations"]["carrier_frequencies"]  # In GHz
+        self.num_available_rbs = data["basestations"]["num_available_rbs"]
+        self.basestation_ue_assoc = data["basestations"]["basestation_ue_assoc"]
+        self.basestation_slice_assoc = data["basestations"]["basestation_slice_assoc"]
+
+        self.max_number_slices = data["slices"]["max_number_slices"]
+        self.slice_ue_assoc = data["slices"]["slice_ue_assoc"]
+
+        self.max_number_ues = data["ues"]["max_number_ues"]
+        self.max_buffer_latencies = data["ues"]["max_buffer_latencies"]
+        self.max_buffer_pkts = data["ues"]["max_buffer_pkts"]
+        self.pkt_sizes = data["ues"]["pkt_sizes"]  # In bits
 
         self.step_number = 0  # Initial simulation step
         self.episode_number = 1  # Initial episode
-        self.max_number_steps = 10  # Maximum number of steps per simulated episode
-        self.max_number_episodes = 1  # Maximum number of simulated episodes
-
-        self.hist_root_path = "./"
-        self.simu_name = "test"
+        self.max_number_steps = data["simulation"][
+            "max_number_steps"
+        ]  # Maximum number of steps per simulated episode
+        self.max_number_episodes = data["simulation"][
+            "max_number_episodes"
+        ]  # Maximum number of simulated episodes
+        self.hist_root_path = data["simulation"]["hist_root_path"]
+        self.simu_name = data["simulation"]["simu_name"]
 
         self.obs_space_format = (
             obs_space_format
@@ -102,15 +113,16 @@ class CommunicationEnv(gym.Env):
 
         return self.obs_space_format(obs)
 
-    def calculate_reward_default(self) -> float:
+    @staticmethod
+    def calculate_reward_default(obs_space: dict) -> float:
         return 0
 
     @staticmethod
-    def obs_space_format_default(obs_space) -> np.array:
+    def obs_space_format_default(obs_space: dict) -> list:
         return obs_space
 
     @staticmethod
-    def verify_sched_decision(sched_decision: np.array) -> bool:
+    def verify_sched_decision(sched_decision: list) -> bool:
         for basestation_sched in sched_decision:
             if np.sum(np.sum(basestation_sched, axis=0) > 1) > 0:
                 raise Exception(

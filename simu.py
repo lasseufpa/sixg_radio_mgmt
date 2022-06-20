@@ -5,7 +5,9 @@ from agents.round_robin import RoundRobin
 from comm_env import CommunicationEnv
 
 round_robin = RoundRobin(2, 2, [2, 2])
-comm_env = CommunicationEnv(round_robin.obs_space_format, round_robin.calculate_reward)
+comm_env = CommunicationEnv(
+    "simple", round_robin.obs_space_format, round_robin.calculate_reward
+)
 obs = comm_env.reset()
 for episode in np.arange(1, comm_env.max_number_episodes + 1):
     print("Episode ", episode)

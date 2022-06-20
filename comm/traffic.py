@@ -5,7 +5,7 @@ class Traffic:
     def __init__(self, max_number_ues) -> None:
         self.max_number_ues = max_number_ues
 
-    def step(self) -> np.array:
+    def step(self) -> list:
         return np.ones(self.max_number_ues) * 4
 
 

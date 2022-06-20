@@ -12,9 +12,9 @@ class UEs:
     def __init__(
         self,
         max_number_ues: int,
-        max_buffer_latencies: np.array,
-        max_buffer_pkts: np.array,
-        pkt_sizes: np.array,
+        max_buffer_latencies: list,
+        max_buffer_pkts: list,
+        pkt_sizes: list,
     ) -> None:
         self.max_number_ues = max_number_ues
         self.max_buffer_latencies = max_buffer_latencies
@@ -27,20 +27,20 @@ class UEs:
 
     @staticmethod
     def get_pkt_throughputs(
-        sched_decision: np.array,
-        spectral_efficiencies: np.array,
-        pkt_sizes: np.array,
-    ) -> np.array:
+        sched_decision: list,
+        spectral_efficiencies: list,
+        pkt_sizes: list,
+    ) -> list:
         return np.floor(
             np.sum(sched_decision * spectral_efficiencies, axis=1) / pkt_sizes
         )
 
     def update_ues(
         self,
-        ue_indexes: np.array,
-        max_buffer_latencies: np.array,
-        max_buffer_pkts: np.array,
-        pkt_sizes: np.array,
+        ue_indexes: list,
+        max_buffer_latencies: list,
+        max_buffer_pkts: list,
+        pkt_sizes: list,
     ) -> None:
         self.max_buffer_latencies[ue_indexes] = max_buffer_latencies
         self.max_buffer_pkts[ue_indexes] = max_buffer_pkts
@@ -53,7 +53,7 @@ class UEs:
     def step(
         self,
         sched_decision: list,
-        traffics: np.array,
+        traffics: list,
         spectral_efficiencies: list,
     ) -> dict:
         pkt_throughputs = np.zeros(self.max_number_ues)
@@ -87,19 +87,15 @@ def main():
         max_buffer_pkts=[20, 10, 20, 10],
         pkt_sizes=[1, 1, 1, 1],
     )
-    sched_decision = np.array(
-        [
-            [[1, 0, 1, 1, 0], [0, 1, 0, 0, 1], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]],
-            [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [1, 0, 1, 1, 0], [0, 1, 0, 0, 1]],
-        ]
-    )
-    traffics = np.array([4, 4, 4, 4])
-    spectral_efficiences = np.array(
-        [
-            [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]],
-            [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]],
-        ]
-    )
+    sched_decision = [
+        [[1, 0, 1, 1, 0], [0, 1, 0, 0, 1], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]],
+        [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [1, 0, 1, 1, 0], [0, 1, 0, 0, 1]],
+    ]
+    traffics = [4, 4, 4, 4]
+    spectral_efficiences = [
+        [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]],
+        [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]],
+    ]
     steps = 10
     for i in np.arange(steps):
         info = ues.step(sched_decision, traffics, spectral_efficiences)

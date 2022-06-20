@@ -69,9 +69,9 @@ class Plots:
     @staticmethod
     def plot(
         xlabel: str,
-        x_data: np.array,
+        x_data: list,
         ylabel: str,
-        y_data: np.array,
+        y_data: list,
         y_data_label: list,
         fig_name: str,
         metric: str,

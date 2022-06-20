@@ -11,12 +11,12 @@ class Agent(ABC):
         pass
 
     @abstractmethod
-    def step(self, obs_space: np.array) -> np.array:
+    def step(self, obs_space: list) -> list:
         pass
 
     @staticmethod
     @abstractmethod
-    def obs_space_format(obs_space: dict) -> np.array:
+    def obs_space_format(obs_space: dict) -> list:
         pass
 
     @staticmethod
