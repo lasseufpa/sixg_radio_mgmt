@@ -14,6 +14,7 @@ class CommunicationEnv(gym.Env):
 
     def __init__(
         self,
+        ChannelClass: Channel,
         config_file: str = "simple",
         obs_space_format: Callable[[dict], list] = None,
         calculate_reward: Callable[[dict], float] = None,
@@ -58,6 +59,7 @@ class CommunicationEnv(gym.Env):
             if calculate_reward is not None
             else self.calculate_reward_default
         )
+        self.ChannelClass = ChannelClass
 
         self.create_scenario()
 
@@ -150,7 +152,7 @@ class CommunicationEnv(gym.Env):
             self.num_available_rbs,
         )
         self.mobility = Mobility(self.max_number_ues)
-        self.channel = Channel(
+        self.channel = self.ChannelClass(
             self.max_number_ues,
             self.max_number_basestations,
             self.num_available_rbs,
