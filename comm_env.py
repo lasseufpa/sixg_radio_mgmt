@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Any, Callable
 
 import gym
 import numpy as np
@@ -20,6 +20,8 @@ class CommunicationEnv(gym.Env):
         config_file: str = "simple",
         obs_space_format: Callable[[dict], list] = None,
         calculate_reward: Callable[[dict], float] = None,
+        obs_space: Callable = None,
+        action_space: Callable = None,
     ) -> None:
 
         with open("./env_config/{}.yml".format(config_file)) as file:
@@ -64,6 +66,9 @@ class CommunicationEnv(gym.Env):
         self.ChannelClass = ChannelClass
         self.TrafficClass = TrafficClass
         self.MobilityClass = MobilityClass
+
+        self.observation_space = obs_space()
+        self.action_space = action_space()
 
         self.create_scenario()
 

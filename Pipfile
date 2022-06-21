@@ -12,6 +12,7 @@ numpy = "*"
 gym = "*"
 tqdm = "*"
 matplotlib = "*"
+stable-baselines3 = "*"
 
 [dev-packages]
 
