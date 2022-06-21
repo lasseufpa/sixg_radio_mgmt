@@ -4,12 +4,14 @@ from tqdm import tqdm
 from agents.round_robin import RoundRobin
 from channels.simple import SimpleChannel
 from comm_env import CommunicationEnv
+from mobilities.simple import SimpleMobility
 from traffics.simple import SimpleTraffic
 
 round_robin = RoundRobin(2, 2, [2, 2])
 comm_env = CommunicationEnv(
     SimpleChannel,
     SimpleTraffic,
+    SimpleMobility,
     "simple",
     round_robin.obs_space_format,
     round_robin.calculate_reward,
