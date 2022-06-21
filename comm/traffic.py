@@ -1,12 +1,13 @@
-import numpy as np
+from abc import ABC, abstractmethod
 
 
-class Traffic:
+class Traffic(ABC):
     def __init__(self, max_number_ues) -> None:
         self.max_number_ues = max_number_ues
 
+    @abstractmethod
     def step(self) -> list:
-        return np.ones(self.max_number_ues) * 4
+        pass
 
 
 def main():

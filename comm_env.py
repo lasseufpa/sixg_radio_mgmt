@@ -15,6 +15,7 @@ class CommunicationEnv(gym.Env):
     def __init__(
         self,
         ChannelClass: Channel,
+        TrafficClass: Traffic,
         config_file: str = "simple",
         obs_space_format: Callable[[dict], list] = None,
         calculate_reward: Callable[[dict], float] = None,
@@ -60,6 +61,7 @@ class CommunicationEnv(gym.Env):
             else self.calculate_reward_default
         )
         self.ChannelClass = ChannelClass
+        self.TrafficClass = TrafficClass
 
         self.create_scenario()
 
@@ -157,7 +159,7 @@ class CommunicationEnv(gym.Env):
             self.max_number_basestations,
             self.num_available_rbs,
         )
-        self.traffic = Traffic(self.max_number_ues)
+        self.traffic = self.TrafficClass(self.max_number_ues)
         self.metrics_hist = Metrics(self.hist_root_path)
 
 
