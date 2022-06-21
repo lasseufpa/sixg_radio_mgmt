@@ -1,5 +1,4 @@
 import numpy as np
-from matplotlib.style import available
 
 from agents.agent import Agent
 
