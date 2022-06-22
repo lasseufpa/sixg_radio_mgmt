@@ -17,7 +17,8 @@ class CommunicationEnv(gym.Env):
         ChannelClass: Channel,
         TrafficClass: Traffic,
         MobilityClass: Mobility,
-        config_file: str = "simple",
+        config_file: str,
+        action_format: Callable,
         obs_space_format: Callable[[dict], list] = None,
         calculate_reward: Callable[[dict], float] = None,
         obs_space: Callable = None,
@@ -63,12 +64,13 @@ class CommunicationEnv(gym.Env):
             if calculate_reward is not None
             else self.calculate_reward_default
         )
+        self.action_format = action_format
         self.ChannelClass = ChannelClass
         self.TrafficClass = TrafficClass
         self.MobilityClass = MobilityClass
 
-        self.observation_space = obs_space()
-        self.action_space = action_space()
+        self.observation_space = obs_space() if obs_space is not None else obs_space
+        self.action_space = action_space() if obs_space is not None else obs_space
 
         self.create_scenario()
 
@@ -84,9 +86,18 @@ class CommunicationEnv(gym.Env):
         to the basestation configuration.
         """
 
-        mobilities = self.mobility.step()
-        spectral_efficiencies = self.channel.step(mobilities)
-        traffics = self.traffic.step()
+        sched_decision = self.action_format(
+            sched_decision,
+            self.max_number_ues,
+            self.max_number_basestations,
+            self.num_available_rbs,
+        )
+
+        mobilities = self.mobility.step(self.step_number, self.episode_number)
+        spectral_efficiencies = self.channel.step(
+            self.step_number, self.episode_number, mobilities
+        )
+        traffics = self.traffic.step(self.step_number, self.episode_number)
 
         if self.verify_sched_decision(sched_decision):
             step_hist = self.ues.step(sched_decision, traffics, spectral_efficiencies)
@@ -102,10 +113,13 @@ class CommunicationEnv(gym.Env):
         )
         self.step_number += 1
         obs = self.obs_space_format(step_hist)
-        reward = self.calculate_reward(obs)
+        reward = self.calculate_reward(step_hist)
 
         step_hist.update({"reward": reward})
         self.metrics_hist.step(step_hist)
+
+        if self.step_number == self.max_number_steps:
+            self.metrics_hist.save(self.simu_name, self.episode_number)
 
         return (
             obs,
@@ -114,12 +128,38 @@ class CommunicationEnv(gym.Env):
             {},
         )
 
-    def reset(self) -> None:
+    def reset(self, initial_episode: int = -1) -> None:
+        if (self.step_number == 0 and self.episode_number == 1) or (
+            self.episode_number == self.max_number_episodes
+        ):
+            self.episode_number = 1 if initial_episode == -1 else initial_episode
+        elif self.episode_number < self.max_number_episodes:
+            self.episode_number += 1
+        else:
+            raise Exception(
+                "Episode number received a non expected value equals to {}.".format(
+                    self.episode_number
+                )
+            )
+        self.step_number = 0
+
         self.create_scenario()
+        initial_positions = self.mobility.step(self.step_number, self.episode_number)
         obs = {
+            "mobility": initial_positions,
+            "spectral_efficiencies": self.channel.step(
+                self.step_number, self.episode_number, initial_positions
+            ),
             "basestation_ue_assoc": self.basestation_ue_assoc,
             "basestation_slice_assoc": self.basestation_slice_assoc,
             "slice_ue_assoc": self.slice_ue_assoc,
+            "sched_decision": [],
+            "pkt_incoming": self.traffic.step(self.step_number, self.episode_number),
+            "pkt_throughputs": np.zeros(self.max_number_ues),
+            "pkt_effective_thr": np.zeros(self.max_number_ues),
+            "buffer_occupancies": np.zeros(self.max_number_ues),
+            "buffer_latencies": np.zeros(self.max_number_ues),
+            "dropped_pkts": np.zeros(self.max_number_ues),
         }
 
         return self.obs_space_format(obs)
@@ -179,7 +219,6 @@ def main():
         for step_number in tqdm(np.arange(comm_env.max_number_steps)):
             comm_env.step(sched_decision)
             if step_number == comm_env.max_number_steps - 1:
-                comm_env.metrics_hist.save(comm_env.simu_name, comm_env.episode_number)
                 comm_env.reset()
 
 

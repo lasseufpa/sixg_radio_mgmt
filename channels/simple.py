@@ -9,7 +9,7 @@ class SimpleChannel(Channel):
     ) -> None:
         super().__init__(max_number_ues, max_number_basestations, num_available_rbs)
 
-    def step(self, mobilities: list) -> list:
+    def step(self, step_number: int, episode_number: int, mobilities: list) -> list:
         spectral_efficiencies = [
             np.ones((self.max_number_ues, self.num_available_rbs[i]))
             for i in np.arange(self.max_number_basestations)

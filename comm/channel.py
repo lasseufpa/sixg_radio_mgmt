@@ -13,7 +13,7 @@ class Channel(ABC):
         self.num_available_rbs = num_available_rbs
 
     @abstractmethod
-    def step(self, mobilities: list) -> list:
+    def step(self, step_number: int, episode_number: int, mobilities: list) -> list:
         pass
 
 

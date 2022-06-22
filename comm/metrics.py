@@ -98,7 +98,7 @@ class Plots:
 
 
 def main():
-    data = Metrics.read("./", "test", 1)
+    data = Metrics.read("./", "test_rl", 1)
 
     metrics = [
         "pkt_incoming",

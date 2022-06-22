@@ -1,6 +1,9 @@
 # Vs code files
 .vscode
 
+# Tensorboard logs
+tensorboard-logs/
+
 # Metric hist
 hist/*
 

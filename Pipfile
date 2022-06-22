@@ -13,6 +13,7 @@ gym = "*"
 tqdm = "*"
 matplotlib = "*"
 stable-baselines3 = "*"
+tensorboard = "*"
 
 [dev-packages]
 

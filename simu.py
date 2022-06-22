@@ -13,6 +13,7 @@ comm_env = CommunicationEnv(
     SimpleTraffic,
     SimpleMobility,
     "simple",
+    round_robin.action_format,
     round_robin.obs_space_format,
     round_robin.calculate_reward,
 )
@@ -23,5 +24,4 @@ for episode in np.arange(1, comm_env.max_number_episodes + 1):
         sched_decision = round_robin.step(obs)
         obs, _, _, _ = comm_env.step(sched_decision)
         if step_number == comm_env.max_number_steps - 1:
-            comm_env.metrics_hist.save(comm_env.simu_name, comm_env.episode_number)
             comm_env.reset()

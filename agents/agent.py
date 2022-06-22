@@ -27,3 +27,12 @@ class Agent(ABC):
     @abstractmethod
     def calculate_reward(obs_space: dict) -> np.float:
         pass
+
+    @staticmethod
+    def action_format(
+        action: list,
+        max_number_ues: int,
+        max_number_basestations: int,
+        num_available_rbs: list,
+    ) -> list:
+        return action

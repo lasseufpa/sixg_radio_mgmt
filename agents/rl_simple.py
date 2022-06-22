@@ -26,7 +26,7 @@ class RLSimple(Agent):
         )
 
     def step(self, obs_space: list) -> list:
-        pass
+        return self.agent.predict(obs_space, deterministic=True)[0]
 
     def train(self, total_timesteps: int) -> None:
         self.agent.learn(total_timesteps=int(total_timesteps), callback=[])
@@ -35,7 +35,7 @@ class RLSimple(Agent):
     def obs_space_format(obs_space: dict) -> list:
         formatted_obs_space = []
         hist_labels = [
-            "pkt_incomings",
+            "pkt_incoming",
             "dropped_pkts",
             "pkt_effective_thr",
             "buffer_occupancies",
@@ -44,7 +44,9 @@ class RLSimple(Agent):
         for hist_label in hist_labels:
             if hist_label == "spectral_efficiencies":
                 formatted_obs_space = np.append(
-                    formatted_obs_space, np.sum(obs_space[hist_label], axis=1), axis=0
+                    formatted_obs_space,
+                    np.squeeze(np.sum(obs_space[hist_label], axis=2)),
+                    axis=0,
                 )
             else:
                 formatted_obs_space = np.append(
@@ -55,15 +57,35 @@ class RLSimple(Agent):
 
     @staticmethod
     def calculate_reward(obs_space: dict) -> float:
-        return 0
+        reward = -np.sum(obs_space["dropped_pkts"])
+        return reward
 
     @staticmethod
     def get_action_space() -> spaces.Box:
-        return spaces.Box(low=0, high=1, shape=(2,))
+        return spaces.Box(low=-1, high=1, shape=(2,))
 
     @staticmethod
     def get_obs_space() -> spaces.Box:
-        return spaces.Box(low=0, high=np.inf, shape=(2 * 5,))
+        return spaces.Box(low=0, high=np.inf, shape=(2 * 5,), dtype=np.float64)
+
+    @staticmethod
+    def action_format(
+        action: list,
+        max_number_ues: int,
+        max_number_basestations: int,
+        num_available_rbs: list,
+    ) -> list:
+        idx_chosen_ue = np.argmax(action)
+        sched_decision = [
+            [
+                np.ones(num_available_rbs)
+                if ue == idx_chosen_ue
+                else np.zeros(num_available_rbs)
+                for ue in np.arange(max_number_ues)
+            ]
+        ]
+
+        return sched_decision
 
 
 def main():
