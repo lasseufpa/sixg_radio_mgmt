@@ -100,7 +100,13 @@ class CommunicationEnv(gym.Env):
         traffics = self.traffic.step(self.step_number, self.episode_number)
 
         if self.verify_sched_decision(sched_decision):
-            step_hist = self.ues.step(sched_decision, traffics, spectral_efficiencies)
+            step_hist = self.ues.step(
+                sched_decision,
+                traffics,
+                spectral_efficiencies,
+                self.bandwidths,
+                self.num_available_rbs,
+            )
         step_hist.update(
             {
                 "mobility": mobilities,
