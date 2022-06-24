@@ -29,10 +29,18 @@ class UEs:
     def get_pkt_throughputs(
         sched_decision: list,
         spectral_efficiencies: list,
+        bandwidth: float,
+        num_available_rbs: int,
         pkt_sizes: list,
     ) -> list:
         return np.floor(
-            np.sum(sched_decision * spectral_efficiencies, axis=1) / pkt_sizes
+            np.sum(
+                (bandwidth / num_available_rbs)
+                * sched_decision
+                * spectral_efficiencies,
+                axis=1,
+            )
+            / pkt_sizes
         )
 
     def update_ues(
@@ -55,12 +63,16 @@ class UEs:
         sched_decision: list,
         traffics: list,
         spectral_efficiencies: list,
+        bandwidths: list,
+        num_available_rbs: list,
     ) -> dict:
         pkt_throughputs = np.zeros(self.max_number_ues)
         for basestation in np.arange(len(sched_decision)):
             pkt_throughputs += self.get_pkt_throughputs(
                 sched_decision[basestation],
                 spectral_efficiencies[basestation],
+                bandwidths[basestation],
+                num_available_rbs[basestation],
                 self.pkt_sizes,
             )
         pkt_incomings = np.floor(traffics / self.pkt_sizes)
