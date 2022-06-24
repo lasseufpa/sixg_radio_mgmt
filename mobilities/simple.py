@@ -8,4 +8,4 @@ class SimpleMobility(Mobility):
         super().__init__(max_number_ues)
 
     def step(self, step_number: int, episode_number: int) -> list:
-        return np.ones(self.max_number_ues)
+        return np.ones((self.max_number_ues, 2))
