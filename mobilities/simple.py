@@ -1,14 +1,29 @@
 import numpy as np
 
-# from comm.mobility import Mobility
+from comm.mobility import Mobility
 
 
-# class SimpleMobility(Mobility):
-#     def __init__(self, max_number_ues: int) -> None:
-#         super().__init__(max_number_ues)
+class SimpleMobility(Mobility):
+    def __init__(self, max_number_ues: int) -> None:
+        super().__init__(max_number_ues)
+        self.n_rows = 5
+        self.n_cols = 5
+        initial_positions = []
+        for ue in np.arange(max_number_ues):
+            initial_positions.append(
+                [
+                    np.random.randint(self.n_rows - 1),
+                    np.random.randint(1, high=self.n_cols),
+                ]
+            )
 
-#     def step(self, step_number: int, episode_number: int) -> list:
-#         return np.ones((self.max_number_ues, 2))
+        self.gridworld = GridWorld(
+            self.n_rows, self.n_cols, initial_positions, [self.n_rows - 1, 0]
+        )
+
+    def step(self, step_number: int, episode_number: int) -> list:
+
+        return self.gridworld.step()
 
 
 class GridWorld:
@@ -42,6 +57,10 @@ class GridWorld:
             [0, 0],
         ]  # Up, right, down, left, stay
         self.prob_previous_action = 0.5
+        self.grid_horizontal_distance = 10
+        self.grid_vertical_distance = 10
+        self.block_vertical_distance = self.grid_vertical_distance / self.n_rows
+        self.block_horizontal_distance = self.grid_horizontal_distance / self.n_cols
 
     def step(
         self,
@@ -49,6 +68,8 @@ class GridWorld:
         for ue in np.arange(len(self.ue_positions)):
             valid_actions = self.calc_valid_actions(self.ue_positions[ue])
             self.move_ue(ue, valid_actions)
+
+        return self.pos_to_mag_angle()
 
     def calc_valid_actions(self, ue_position):
         valid_actions = [True, True, True, True, True]  # Up, right, down, left, stay
@@ -110,6 +131,19 @@ class GridWorld:
             self.ue_positions[ue_idx][1] + self.actions_move[action_choice][1]
         )
         self.ue_previous_actions[ue_idx] = list(actions.keys())[action_choice]
+
+    def pos_to_mag_angle(self):
+        pos_mag_angle = []
+        for ue_pos in self.ue_positions:
+            convert_axis = (
+                np.abs(ue_pos[0] - (self.n_rows - 1)) * self.block_vertical_distance
+                + ue_pos[1] * self.block_horizontal_distance * 1j
+            )
+            mag = np.linalg.norm(convert_axis)
+            angle = np.angle(convert_axis)
+            pos_mag_angle.append([mag, angle])
+
+        return pos_mag_angle
 
 
 def main():

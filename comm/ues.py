@@ -36,8 +36,8 @@ class UEs:
         return np.floor(
             np.sum(
                 (bandwidth / num_available_rbs)
-                * sched_decision
-                * spectral_efficiencies,
+                * np.array(sched_decision)
+                * np.array(spectral_efficiencies),
                 axis=1,
             )
             / pkt_sizes

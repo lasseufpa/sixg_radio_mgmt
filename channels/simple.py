@@ -36,7 +36,7 @@ class SimpleChannel(Channel):
         #     np.ones((self.max_number_ues, self.num_available_rbs[i]))
         #     for i in np.arange(self.max_number_basestations)
         # ]
-        return spectral_efficiencies
+        return [spectral_efficiencies]
 
     """
     Very rough estimate of path loss (in this case, the gain)
