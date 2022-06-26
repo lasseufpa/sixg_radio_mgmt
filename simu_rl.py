@@ -48,10 +48,12 @@ for episode in np.arange(1, comm_env.max_number_episodes + 1):
 # rl_agent = RoundRobin(2, 1, [3])
 
 # obs = comm_env.reset()
+# sched_decision = [[[1, 1, 1], [0, 0, 0]]]
 # for episode in np.arange(1, comm_env.max_number_episodes + 1):
 #     print("Episode ", episode)
 #     for step_number in tqdm(np.arange(comm_env.max_number_steps)):
-#         sched_decision = rl_agent.step(obs)
+#         # sched_decision = rl_agent.step(obs)
+#         sched_decision = np.roll(sched_decision, 3)
 #         obs, _, _, _ = comm_env.step(sched_decision)
 #         if step_number == comm_env.max_number_steps - 1:
 #             comm_env.reset()

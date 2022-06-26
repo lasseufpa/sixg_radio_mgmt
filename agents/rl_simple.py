@@ -35,11 +35,11 @@ class RLSimple(Agent):
     def obs_space_format(obs_space: dict) -> list:
         formatted_obs_space = []
         hist_labels = [
-            "pkt_incoming",
+            # "pkt_incoming",
             "dropped_pkts",
-            "pkt_effective_thr",
+            # "pkt_effective_thr",
             "buffer_occupancies",
-            "spectral_efficiencies",
+            # "spectral_efficiencies",
         ]
         for hist_label in hist_labels:
             if hist_label == "spectral_efficiencies":
@@ -66,7 +66,7 @@ class RLSimple(Agent):
 
     @staticmethod
     def get_obs_space() -> spaces.Box:
-        return spaces.Box(low=0, high=np.inf, shape=(2 * 5,), dtype=np.float64)
+        return spaces.Box(low=0, high=np.inf, shape=(2 * 2,), dtype=np.float64)
 
     @staticmethod
     def action_format(
