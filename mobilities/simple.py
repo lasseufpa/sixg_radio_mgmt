@@ -79,16 +79,14 @@ class GridWorld:
         for action_idx in np.arange(
             len(valid_actions) - 1
         ):  # Stay is always a valid action
-            try:
-                if (
-                    self.grid[
-                        ue_position[0] + self.actions_move[action_idx][0],
-                        ue_position[1] + self.actions_move[action_idx][1],
-                    ]
-                    != 0
-                ):
-                    valid_actions[action_idx] = False
-            except IndexError:  # in case the index is out of array bounds
+            v_move = ue_position[0] + self.actions_move[action_idx][0]
+            h_move = ue_position[1] + self.actions_move[action_idx][1]
+            if (
+                v_move < 0
+                or v_move > (self.n_rows - 1)
+                or h_move < 0
+                or h_move > (self.n_cols - 1)
+            ):
                 valid_actions[action_idx] = False
 
         return valid_actions
@@ -148,7 +146,7 @@ class GridWorld:
         #     prob_other_actions = 1 / (np.sum(valid_actions))
         #     prob = np.array(valid_actions, dtype=int) * prob_other_actions
 
-        action_choice = np.random.choice(5, p=prob)
+        action_choice = np.random.choice(len(actions), p=prob)
         self.grid[self.ue_positions[ue_idx][0], self.ue_positions[ue_idx][1]] = 0
         self.grid[
             self.ue_positions[ue_idx][0] + self.actions_move[action_choice][0],
@@ -177,12 +175,13 @@ class GridWorld:
 
 
 def main():
+    np.random.seed(10)
     grid_size = 6
     eps = 1000
     n_steps = 1000
     for ep in tqdm(np.arange(eps)):
-        ue1_pos = []
-        ue2_pos = []
+        ue1_pos = np.zeros((n_steps, 2))
+        ue2_pos = np.zeros((n_steps, 2))
         ue1_ini_pos = [
             np.random.randint(0, grid_size - 1),
             np.random.randint(1, grid_size),
@@ -191,19 +190,21 @@ def main():
             np.random.randint(0, grid_size - 1),
             np.random.randint(1, grid_size),
         ]
-        ue1_pos.append(ue1_ini_pos)
-        ue2_pos.append(ue2_ini_pos)
+        ue1_pos[0] = np.array(ue1_ini_pos)
+        ue2_pos[0] = np.array(ue2_ini_pos)
         gridworld = GridWorld(
             grid_size, grid_size, [ue1_ini_pos, ue2_ini_pos], [grid_size - 1, 0]
         )
-        for step in tqdm(np.arange(n_steps), leave=False):
+        for step in tqdm(np.arange(1, n_steps), leave=False):
             gridworld.step()
-            ue1_pos.append(gridworld.ue_positions[0])
-            ue2_pos.append(gridworld.ue_positions[1])
+            ue1_pos[step] = gridworld.ue_positions[0]
+            ue2_pos[step] = gridworld.ue_positions[1]
 
-        # np.savez_compressed(
-        #     "./mobility_val/ep{}.npz".format(ep), ue1=ue1_pos, ue2=ue2_pos
-        # )
+        np.savez_compressed(
+            "./mobility_val/ep{}.npz".format(ep),
+            ue1=np.array(ue1_pos),
+            ue2=np.array(ue2_pos),
+        )
 
 
 if __name__ == "__main__":
