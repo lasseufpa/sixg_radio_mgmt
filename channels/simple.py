@@ -19,7 +19,7 @@ class SimpleChannel(Channel):
         capacities = []
         for ue in np.arange(2):
             h_channel = self.my_channel(
-                mobilities[ue][0], mobilities[ue][0], self.ULA()
+                mobilities[ue][0], mobilities[ue][1], self.ULA()
             )
             precoder_weight = h_channel
             capacity = self.capacity_miso_beamforming(
