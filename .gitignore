@@ -4,6 +4,9 @@
 # Tensorboard logs
 tensorboard-logs/
 
+# mobility files
+mobility_val/
+
 # Metric hist
 hist/*
 

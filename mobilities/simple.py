@@ -1,13 +1,15 @@
 import numpy as np
+from tqdm import tqdm
 
-from comm.mobility import Mobility
+# from comm.mobility import Mobility
 
 
-class SimpleMobility(Mobility):
+# class SimpleMobility(Mobility):
+class SimpleMobility:
     def __init__(self, max_number_ues: int) -> None:
-        super().__init__(max_number_ues)
-        self.n_rows = 5
-        self.n_cols = 5
+        # super().__init__(max_number_ues)
+        self.n_rows = 6
+        self.n_cols = 6
         initial_positions = []
         for ue in np.arange(max_number_ues):
             initial_positions.append(
@@ -103,20 +105,48 @@ class GridWorld:
             "left": 3,
             "stay": 4,
         }
-        previous_action_idx = actions[self.ue_previous_actions[ue_idx]]
-        if valid_actions[previous_action_idx]:
-            if np.sum(valid_actions) != 1:
-                prob_other_actions = self.prob_previous_action / (
-                    np.sum(valid_actions) - 1
-                )
-                prob = np.array(valid_actions, dtype=int) * prob_other_actions
-                prob[previous_action_idx] = 0.5
-            elif np.sum(valid_actions) == 1:
-                prob = np.array(valid_actions, dtype=int) * 0
-                prob[previous_action_idx] = 1
-        else:
-            prob_other_actions = 1 / (np.sum(valid_actions))
-            prob = np.array(valid_actions, dtype=int) * prob_other_actions
+        # previous_action_idx = actions[self.ue_previous_actions[ue_idx]]
+
+        if ue_idx == 0:
+            prob = np.zeros(len(actions))
+            main_actions = int(valid_actions[0]) + int(valid_actions[2])
+            prob[[0, 2]] = 0.6 / main_actions if main_actions != 0 else 0
+            other_actions = (
+                int(valid_actions[1]) + int(valid_actions[3]) + int(valid_actions[4])
+            )
+            prob[[1, 3, 4]] = (
+                (1 - np.sum(prob * valid_actions)) / other_actions
+                if other_actions != 0
+                else 0
+            )
+            prob = prob * valid_actions
+        elif ue_idx == 1:
+            prob = np.zeros(len(actions))
+            main_actions = int(valid_actions[1]) + int(valid_actions[3])
+            prob[[1, 3]] = 0.6 / main_actions if main_actions != 0 else 0
+            other_actions = (
+                int(valid_actions[0]) + int(valid_actions[2]) + int(valid_actions[4])
+            )
+            prob[[0, 2, 4]] = (
+                (1 - np.sum(prob * valid_actions)) / other_actions
+                if other_actions != 0
+                else 0
+            )
+            prob = prob * valid_actions
+
+        # if valid_actions[previous_action_idx]:
+        #     if np.sum(valid_actions) != 1:
+        #         prob_other_actions = self.prob_previous_action / (
+        #             np.sum(valid_actions) - 1
+        #         )
+        #         prob = np.array(valid_actions, dtype=int) * prob_other_actions
+        #         prob[previous_action_idx] = 0.5
+        #     elif np.sum(valid_actions) == 1:
+        #         prob = np.array(valid_actions, dtype=int) * 0
+        #         prob[previous_action_idx] = 1
+        # else:
+        #     prob_other_actions = 1 / (np.sum(valid_actions))
+        #     prob = np.array(valid_actions, dtype=int) * prob_other_actions
 
         action_choice = np.random.choice(5, p=prob)
         self.grid[self.ue_positions[ue_idx][0], self.ue_positions[ue_idx][1]] = 0
@@ -147,11 +177,33 @@ class GridWorld:
 
 
 def main():
-    gridworld = GridWorld(5, 5, [[3, 3], [2, 2]], [4, 0])
-    for i in np.arange(10):
-        gridworld.step()
-        print(gridworld.grid)
-        print("\n")
+    grid_size = 6
+    eps = 1000
+    n_steps = 1000
+    for ep in tqdm(np.arange(eps)):
+        ue1_pos = []
+        ue2_pos = []
+        ue1_ini_pos = [
+            np.random.randint(0, grid_size - 1),
+            np.random.randint(1, grid_size),
+        ]
+        ue2_ini_pos = [
+            np.random.randint(0, grid_size - 1),
+            np.random.randint(1, grid_size),
+        ]
+        ue1_pos.append(ue1_ini_pos)
+        ue2_pos.append(ue2_ini_pos)
+        gridworld = GridWorld(
+            grid_size, grid_size, [ue1_ini_pos, ue2_ini_pos], [grid_size - 1, 0]
+        )
+        for step in tqdm(np.arange(n_steps), leave=False):
+            gridworld.step()
+            ue1_pos.append(gridworld.ue_positions[0])
+            ue2_pos.append(gridworld.ue_positions[1])
+
+        # np.savez_compressed(
+        #     "./mobility_val/ep{}.npz".format(ep), ue1=ue1_pos, ue2=ue2_pos
+        # )
 
 
 if __name__ == "__main__":
