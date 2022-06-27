@@ -1,15 +1,15 @@
 import numpy as np
 from numpy import linalg as la
 
-from comm import Channel
+# from comm import Channel
 
 
-class SimpleChannel(Channel):
+# class SimpleChannel(Channel):
+class SimpleChannel:
     def __init__(
         self, max_number_ues: int, max_number_basestations: int, num_available_rbs: list
     ) -> None:
-        pass
-        super().__init__(max_number_ues, max_number_basestations, num_available_rbs)
+        # super().__init__(max_number_ues, max_number_basestations, num_available_rbs)
         self.ula = SimpleChannel.ULA()
         self.target_spectral_efficiency = 5  # in bits/s/Hz
         self.power_tx = 10
@@ -17,9 +17,9 @@ class SimpleChannel(Channel):
 
     def step(self, step_number: int, episode_number: int, mobilities: list) -> list:
         capacities = []
-        for ue in np.arange(2):
+        for ue in np.arange(len(mobilities)):
             h_channel = self.my_channel(
-                mobilities[ue][0], mobilities[ue][0], self.ULA()
+                mobilities[ue][0], mobilities[ue][1], self.ULA()
             )
             precoder_weight = h_channel
             capacity = self.capacity_miso_beamforming(
@@ -27,16 +27,17 @@ class SimpleChannel(Channel):
             )
             capacities.append(capacity)
         # Considering only one basestation in self.num_available_rbs[0]
-        spectral_efficiencies = [
-            np.repeat(capacities[ue], self.num_available_rbs[0])
-            for ue in np.arange(self.max_number_ues)
-        ]
-
         # spectral_efficiencies = [
-        #     np.ones((self.max_number_ues, self.num_available_rbs[i]))
-        #     for i in np.arange(self.max_number_basestations)
+        #     np.repeat(capacities[ue], self.num_available_rbs[0])
+        #     for ue in np.arange(self.max_number_ues)
         # ]
-        return [spectral_efficiencies]
+
+        # # spectral_efficiencies = [
+        # #     np.ones((self.max_number_ues, self.num_available_rbs[i]))
+        # #     for i in np.arange(self.max_number_basestations)
+        # # ]
+        # return [spectral_efficiencies]
+        return capacities
 
     """
     Very rough estimate of path loss (in this case, the gain)
@@ -97,12 +98,40 @@ class SimpleChannel(Channel):
         snr = power_tx * inner_product_magnitude / power_noise
         return snr
 
+    @staticmethod
+    def pos_to_mag_angle(
+        ue_pos, n_rows, block_vertical_distance, block_horizontal_distance
+    ):
+        convert_axis = (
+            np.abs(ue_pos[0] - (n_rows - 1)) * block_vertical_distance
+            + ue_pos[1] * block_horizontal_distance * 1j
+        )
+        mag = np.linalg.norm(convert_axis)
+        angle = np.angle(convert_axis)
+
+        return (mag, angle)
+
 
 def main():
+    grid_dis = 6
     channel = SimpleChannel(2, 1, [2])
-    mobilities = [[5, np.pi / 4], [5, np.pi / 4]]
-    spectral_efficiences = channel.step(1, 1, mobilities)
+    block_vertical_distance = 4
+    block_horizontal_distance = 4
+    # spectral_efficiences = channel.step(1, 1, mobilities)
+    # print(spectral_efficiences)
+    spectral_efficiences = np.zeros((grid_dis, grid_dis))
+    for i in np.arange(grid_dis):
+        for j in np.arange(grid_dis):
+            if i != (grid_dis - 1) or j != 0:
+                mag, angle = channel.pos_to_mag_angle(
+                    [i, j], grid_dis, block_vertical_distance, block_horizontal_distance
+                )
+                channel_value = channel.step(1, 1, [[mag, angle]])[0]
+                spectral_efficiences[i, j] = channel_value
+
     print(spectral_efficiences)
+    np.savez_compressed("spec_eff_matrix.npz", spec_eff_matrix=spectral_efficiences)
+
     # rx_mag = 5
     # rx_angle = np.pi / 4
 
