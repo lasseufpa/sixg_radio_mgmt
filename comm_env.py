@@ -206,7 +206,7 @@ class CommunicationEnv(gym.Env):
             self.carrier_frequencies,
             self.num_available_rbs,
         )
-        self.mobility = self.MobilityClass(self.max_number_ues)
+        self.mobility = self.MobilityClass(self.max_number_ues, self.episode_number)
         self.channel = self.ChannelClass(
             self.max_number_ues,
             self.max_number_basestations,

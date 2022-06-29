@@ -1,11 +1,11 @@
 import numpy as np
 from numpy import linalg as la
 
-# from comm import Channel
+from comm import Channel
 
 
-# class SimpleChannel(Channel):
-class SimpleChannel:
+class SimpleChannel(Channel):
+    # class SimpleChannel:
     def __init__(
         self, max_number_ues: int, max_number_basestations: int, num_available_rbs: list
     ) -> None:
@@ -14,30 +14,38 @@ class SimpleChannel:
         self.target_spectral_efficiency = 5  # in bits/s/Hz
         self.power_tx = 10
         self.power_noise = 0.00929032  # Calculated for SE=5
+        self.channel = self.read_file()
+
+    def read_file(self):
+        file = np.load("spec_eff_matrix.npz")
+
+        return file.f.spec_eff_matrix
 
     def step(self, step_number: int, episode_number: int, mobilities: list) -> list:
-        capacities = []
-        for ue in np.arange(len(mobilities)):
-            h_channel = self.my_channel(
-                mobilities[ue][0], mobilities[ue][1], self.ULA()
-            )
-            precoder_weight = h_channel
-            capacity = self.capacity_miso_beamforming(
-                h_channel, precoder_weight, self.power_tx, self.power_noise
-            )
-            capacities.append(capacity)
-        # Considering only one basestation in self.num_available_rbs[0]
-        # spectral_efficiencies = [
-        #     np.repeat(capacities[ue], self.num_available_rbs[0])
-        #     for ue in np.arange(self.max_number_ues)
-        # ]
-
+        # capacities = []
+        # for ue in np.arange(len(mobilities)):
+        #     h_channel = self.my_channel(
+        #         mobilities[ue][0], mobilities[ue][1], self.ULA()
+        #     )
+        #     precoder_weight = h_channel
+        #     capacity = self.capacity_miso_beamforming(
+        #         h_channel, precoder_weight, self.power_tx, self.power_noise
+        #     )
+        #     capacities.append(capacity)
+        # # Considering only one basestation in self.num_available_rbs[0]
         # # spectral_efficiencies = [
-        # #     np.ones((self.max_number_ues, self.num_available_rbs[i]))
-        # #     for i in np.arange(self.max_number_basestations)
+        # #     np.repeat(capacities[ue], self.num_available_rbs[0])
+        # #     for ue in np.arange(self.max_number_ues)
         # # ]
-        # return [spectral_efficiencies]
-        return capacities
+
+        # # # spectral_efficiencies = [
+        # # #     np.ones((self.max_number_ues, self.num_available_rbs[i]))
+        # # #     for i in np.arange(self.max_number_basestations)
+        # # # ]
+        # # return [spectral_efficiencies]
+        capacity_ue1 = self.channel[int(mobilities[0][0]), int(mobilities[0][0])]
+        capacity_ue2 = self.channel[int(mobilities[1][0]), int(mobilities[1][1])]
+        return [[[capacity_ue1], [capacity_ue2]]]
 
     """
     Very rough estimate of path loss (in this case, the gain)

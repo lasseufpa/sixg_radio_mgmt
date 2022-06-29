@@ -23,7 +23,7 @@ comm_env = CommunicationEnv(
 check_env(comm_env)
 rl_agent = RLSimple(2, 1, [3], comm_env)
 total_number_steps = 2000
-rl_agent.train(total_number_steps)
+rl_agent.train(comm_env.max_number_steps * comm_env.max_number_episodes)
 
 obs = comm_env.reset()
 for episode in np.arange(1, comm_env.max_number_episodes + 1):

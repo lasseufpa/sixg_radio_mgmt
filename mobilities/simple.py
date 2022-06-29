@@ -1,12 +1,12 @@
 import numpy as np
 from tqdm import tqdm
 
-# from comm.mobility import Mobility
+from comm.mobility import Mobility
 
 
-# class SimpleMobility(Mobility):
-class SimpleMobility:
-    def __init__(self, max_number_ues: int) -> None:
+class SimpleMobility(Mobility):
+    # class SimpleMobility:
+    def __init__(self, max_number_ues: int, episode: int) -> None:
         # super().__init__(max_number_ues)
         self.n_rows = 6
         self.n_cols = 6
@@ -22,10 +22,17 @@ class SimpleMobility:
         self.gridworld = GridWorld(
             self.n_rows, self.n_cols, initial_positions, [self.n_rows - 1, 0]
         )
+        self.positions = self.read_files(episode)
 
     def step(self, step_number: int, episode_number: int) -> list:
 
-        return self.gridworld.step()
+        # return self.gridworld.step()
+        return [self.positions[0][step_number], self.positions[1][step_number]]
+
+    def read_files(self, episode):
+        file = np.load("./mobility_val/ep{}.npz".format(episode))
+
+        return [file.f.ue1, file.f.ue2]
 
 
 class GridWorld:

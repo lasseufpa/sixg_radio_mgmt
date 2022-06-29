@@ -1,9 +1,9 @@
 ---
 basestations:
   max_number_basestations: 1
-  bandwidths: [100]
+  bandwidths: [1]
   carrier_frequencies: [28]
-  num_available_rbs: [3]
+  num_available_rbs: [1]
   basestation_ue_assoc: [[1, 1]]
   basestation_slice_assoc: [[1]]
 slices:
@@ -11,11 +11,11 @@ slices:
   slice_ue_assoc: [[1, 1]]
 ues:
   max_number_ues: 2
-  max_buffer_latencies: [10000, 10000]
-  max_buffer_pkts: [20, 10]
+  max_buffer_latencies: [100, 100]
+  max_buffer_pkts: [3, 3]
   pkt_sizes: [1, 1]
 simulation:
   simu_name: test_rl
   max_number_steps: 1000
-  max_number_episodes: 1
+  max_number_episodes: 100
   hist_root_path: ./
