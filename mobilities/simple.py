@@ -207,5 +207,112 @@ def main():
         )
 
 
+def calc_valid_actions(n_rows, n_cols, ue_position):
+    valid_actions = [True, True, True, True, True]  # Up, right, down, left, stay
+    actions_move = [
+        [-1, 0],
+        [0, 1],
+        [1, 0],
+        [0, -1],
+        [0, 0],
+    ]  # Up, right, down, left, stay
+    for action_idx in np.arange(
+        len(valid_actions) - 1
+    ):  # Stay is always a valid action
+        # TODO remover movimentos pra basestation e ues na mesma posição
+        v_move = ue_position[0] + actions_move[action_idx][0]
+        h_move = ue_position[1] + actions_move[action_idx][1]
+        if v_move < 0 or v_move > (n_rows - 1) or h_move < 0 or h_move > (n_cols - 1):
+            valid_actions[action_idx] = False
+
+    return valid_actions
+
+
+def move_ue(
+    n_rows,
+    n_cols,
+    ue_position,
+    ue_idx,
+    valid_actions,
+):
+    """
+    Still moving in the previous direction has a higher probability (0.5)
+    and the remaining probability is divided among the other valid actions.
+    """
+    grid = np.zeros((n_rows, n_cols))
+    actions = {
+        "up": 0,
+        "right": 1,
+        "down": 2,
+        "left": 3,
+        "stay": 4,
+    }
+    actions_move = [
+        [-1, 0],
+        [0, 1],
+        [1, 0],
+        [0, -1],
+        [0, 0],
+    ]  # Up, right, down, left, stay
+
+    if ue_idx == 0:
+        prob = np.zeros(len(actions))
+        main_actions = int(valid_actions[0]) + int(valid_actions[2])
+        prob[[0, 2]] = 0.6 / main_actions if main_actions != 0 else 0
+        other_actions = (
+            int(valid_actions[1]) + int(valid_actions[3]) + int(valid_actions[4])
+        )
+        prob[[1, 3, 4]] = (
+            (1 - np.sum(prob * valid_actions)) / other_actions
+            if other_actions != 0
+            else 0
+        )
+        prob = prob * valid_actions
+    elif ue_idx == 1:
+        prob = np.zeros(len(actions))
+        main_actions = int(valid_actions[1]) + int(valid_actions[3])
+        prob[[1, 3]] = 0.6 / main_actions if main_actions != 0 else 0
+        other_actions = (
+            int(valid_actions[0]) + int(valid_actions[2]) + int(valid_actions[4])
+        )
+        prob[[0, 2, 4]] = (
+            (1 - np.sum(prob * valid_actions)) / other_actions
+            if other_actions != 0
+            else 0
+        )
+        prob = prob * valid_actions
+
+    for action_choice in np.arange(len(actions)):
+        if valid_actions[action_choice] is True:
+            grid[
+                ue_position[0] + actions_move[action_choice][0],
+                ue_position[1] + actions_move[action_choice][1],
+            ] = prob[action_choice]
+
+    return (prob, grid)
+
+
+def main2():
+    n_rows = 6
+    n_cols = 6
+    n_actions = 5
+
+    for ue_idx in np.arange(2):
+        pos_actions_prob = np.zeros((n_rows, n_cols, n_actions))
+        matrix_pos_prob = np.zeros((n_rows, n_cols, n_rows, n_cols))
+        for i in np.arange(n_rows):
+            for j in np.arange(n_cols):
+                ue_position = np.array([i, j])
+                valid_actions = calc_valid_actions(n_rows, n_cols, ue_position)
+                prob, grid = move_ue(n_rows, n_cols, ue_position, ue_idx, valid_actions)
+                pos_actions_prob[i, j] = prob
+                matrix_pos_prob[i, j] = grid
+        np.savez_compressed(
+            "mobility_ue{}.npz".format(ue_idx),
+            pos_actions_prob=pos_actions_prob,
+            matrix_pos_prob=matrix_pos_prob,
+        )
+
+
 if __name__ == "__main__":
-    main()
+    main2()

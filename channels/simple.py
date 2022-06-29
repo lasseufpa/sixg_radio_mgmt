@@ -129,6 +129,10 @@ def main():
                 channel_value = channel.step(1, 1, [[mag, angle]])[0]
                 spectral_efficiences[i, j] = channel_value
 
+    spectral_efficiences = np.ceil(spectral_efficiences)
+    spectral_efficiences[spectral_efficiences > 5] = 5
+    spectral_efficiences[1:3, 0:5] = 2
+    spectral_efficiences[3:, 3:5] = 2
     print(spectral_efficiences)
     np.savez_compressed("spec_eff_matrix.npz", spec_eff_matrix=spectral_efficiences)
 
