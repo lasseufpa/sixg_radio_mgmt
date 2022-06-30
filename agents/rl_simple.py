@@ -31,6 +31,12 @@ class RLSimple(Agent):
     def train(self, total_timesteps: int) -> None:
         self.agent.learn(total_timesteps=int(total_timesteps), callback=[])
 
+    def save(self, filename: str) -> None:
+        self.agent.save(filename)
+
+    def load(self, filename: str, env: CommunicationEnv) -> None:
+        self.agent = SAC.load(filename, env=env)
+
     @staticmethod
     def obs_space_format(obs_space: dict) -> list:
         formatted_obs_space = []
@@ -39,7 +45,7 @@ class RLSimple(Agent):
             "dropped_pkts",
             # "pkt_effective_thr",
             "buffer_occupancies",
-            # "spectral_efficiencies",
+            "spectral_efficiencies",
         ]
         for hist_label in hist_labels:
             if hist_label == "spectral_efficiencies":
@@ -66,7 +72,7 @@ class RLSimple(Agent):
 
     @staticmethod
     def get_obs_space() -> spaces.Box:
-        return spaces.Box(low=0, high=np.inf, shape=(2 * 2,), dtype=np.float64)
+        return spaces.Box(low=0, high=np.inf, shape=(2 * 3,), dtype=np.float64)
 
     @staticmethod
     def action_format(

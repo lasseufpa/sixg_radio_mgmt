@@ -20,40 +20,49 @@ comm_env = CommunicationEnv(
     RLSimple.get_obs_space,
     RLSimple.get_action_space,
 )
-check_env(comm_env)
-rl_agent = RLSimple(2, 1, [3], comm_env)
-total_number_steps = 2000
-rl_agent.train(comm_env.max_number_steps * comm_env.max_number_episodes)
+training_episodes = 300
+initial_test_episode = 900
+# check_env(comm_env)
+rl_agent = RLSimple(2, 1, [1], comm_env)
+# rl_agent.train(comm_env.max_number_steps * training_episodes)
+# rl_agent.save("sac")
+rl_agent.load("sac", comm_env)
 
-obs = comm_env.reset()
-for episode in np.arange(1, comm_env.max_number_episodes + 1):
-    print("Episode ", episode)
-    for step_number in tqdm(np.arange(comm_env.max_number_steps)):
+# RL Agent
+obs = comm_env.reset(initial_test_episode)
+# comm_env.logs = False
+rewards = np.zeros(
+    (comm_env.max_number_episodes - initial_test_episode, comm_env.max_number_steps)
+)
+for episode in np.arange(comm_env.max_number_episodes - initial_test_episode):
+    # for step_number in tqdm(np.arange(comm_env.max_number_steps)):
+    for step_number in np.arange(comm_env.max_number_steps):
         sched_decision = rl_agent.step(obs)
-        obs, _, _, _ = comm_env.step(sched_decision)
-        if step_number == comm_env.max_number_steps - 1:
+        obs, reward, _, _ = comm_env.step(sched_decision)
+        rewards[episode, step_number] = reward
+        if (
+            step_number == comm_env.max_number_steps - 1
+            and episode != comm_env.max_number_episodes - initial_test_episode - 1
+        ):
             comm_env.reset()
+np.savez_compressed("rewards_rl.npz", rewards=rewards)
 
-# # Round-robin
-# comm_env = CommunicationEnv(
-#     SimpleChannel,
-#     SimpleTraffic,
-#     SimpleMobility,
-#     "simple_rl",
-#     RoundRobin.action_format,
-#     RoundRobin.obs_space_format,
-#     RoundRobin.calculate_reward,
+# ## Round Robin agent
+# obs = comm_env.reset(initial_test_episode)
+# sched_decision = [[[1], [0]]]
+# # comm_env.logs = False
+# rewards = np.zeros(
+#     (comm_env.max_number_episodes - initial_test_episode, comm_env.max_number_steps)
 # )
-
-# rl_agent = RoundRobin(2, 1, [3])
-
-# obs = comm_env.reset()
-# sched_decision = [[[1, 1, 1], [0, 0, 0]]]
-# for episode in np.arange(1, comm_env.max_number_episodes + 1):
-#     print("Episode ", episode)
-#     for step_number in tqdm(np.arange(comm_env.max_number_steps)):
-#         # sched_decision = rl_agent.step(obs)
-#         sched_decision = np.roll(sched_decision, 3)
-#         obs, _, _, _ = comm_env.step(sched_decision)
-#         if step_number == comm_env.max_number_steps - 1:
+# for episode in np.arange(comm_env.max_number_episodes - initial_test_episode):
+#     # for step_number in tqdm(np.arange(comm_env.max_number_steps)):
+#     for step_number in np.arange(comm_env.max_number_steps):
+#         obs, reward, _, _ = comm_env.step(sched_decision)
+#         sched_decision = np.roll(sched_decision, 1)
+#         rewards[episode, step_number] = reward
+#         if (
+#             step_number == comm_env.max_number_steps - 1
+#             and episode != comm_env.max_number_episodes - initial_test_episode - 1
+#         ):
 #             comm_env.reset()
+# np.savez_compressed("rewards_rl.npz", rewards=rewards)

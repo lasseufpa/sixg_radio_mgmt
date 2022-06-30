@@ -95,6 +95,8 @@ class GridWorld:
                 or h_move > (self.n_cols - 1)
             ):
                 valid_actions[action_idx] = False
+            elif self.grid[v_move, h_move] != 0:
+                valid_actions[action_idx] = False
 
         return valid_actions
 
@@ -189,14 +191,17 @@ def main():
     for ep in tqdm(np.arange(eps)):
         ue1_pos = np.zeros((n_steps, 2))
         ue2_pos = np.zeros((n_steps, 2))
-        ue1_ini_pos = [
-            np.random.randint(0, grid_size - 1),
-            np.random.randint(1, grid_size),
-        ]
-        ue2_ini_pos = [
-            np.random.randint(0, grid_size - 1),
-            np.random.randint(1, grid_size),
-        ]
+        ue1_ini_pos = np.array([])
+        ue2_ini_pos = np.array([])
+        while np.array_equal(ue1_ini_pos, ue2_ini_pos) is True:
+            ue1_ini_pos = [
+                np.random.randint(0, grid_size - 1),
+                np.random.randint(1, grid_size),
+            ]
+            ue2_ini_pos = [
+                np.random.randint(0, grid_size - 1),
+                np.random.randint(1, grid_size),
+            ]
         ue1_pos[0] = np.array(ue1_ini_pos)
         ue2_pos[0] = np.array(ue2_ini_pos)
         gridworld = GridWorld(
@@ -206,6 +211,14 @@ def main():
             gridworld.step()
             ue1_pos[step] = gridworld.ue_positions[0]
             ue2_pos[step] = gridworld.ue_positions[1]
+            if (
+                np.array_equal(ue1_pos[step], ue2_pos[step]) is True
+                or np.array_equal(ue1_pos[step], np.array([5, 0])) is True
+                or np.array_equal(ue2_pos[step], np.array([5, 0])) is True
+            ):
+                raise Exception(
+                    "UEs in the same position or occupying basestation position"
+                )
 
         np.savez_compressed(
             "./mobility_val/ep{}.npz".format(ep),
@@ -322,4 +335,4 @@ def main2():
 
 
 if __name__ == "__main__":
-    main2()
+    main()

@@ -53,6 +53,7 @@ class CommunicationEnv(gym.Env):
         ]  # Maximum number of simulated episodes
         self.hist_root_path = data["simulation"]["hist_root_path"]
         self.simu_name = data["simulation"]["simu_name"]
+        self.logs = True
 
         self.obs_space_format = (
             obs_space_format
@@ -126,6 +127,12 @@ class CommunicationEnv(gym.Env):
 
         if self.step_number == self.max_number_steps:
             self.metrics_hist.save(self.simu_name, self.episode_number)
+        if self.logs is True:
+            print(
+                "Episode: {}, step number: {}".format(
+                    self.episode_number, self.step_number
+                )
+            )
 
         return (
             obs,
@@ -135,8 +142,10 @@ class CommunicationEnv(gym.Env):
         )
 
     def reset(self, initial_episode: int = -1) -> None:
-        if (self.step_number == 0 and self.episode_number == 1) or (
-            self.episode_number == self.max_number_episodes
+        if (
+            (self.step_number == 0 and self.episode_number == 1)
+            or (self.episode_number == self.max_number_episodes)
+            or initial_episode != -1
         ):
             self.episode_number = 1 if initial_episode == -1 else initial_episode
         elif self.episode_number < self.max_number_episodes:

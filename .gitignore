@@ -5,10 +5,10 @@
 tensorboard-logs/
 
 # mobility files
-mobility_val/
+# mobility_val/
 
 # Metric hist
-hist/*
+# hist/*
 
 # Results
 results/*
