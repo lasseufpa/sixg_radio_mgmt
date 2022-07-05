@@ -9,7 +9,6 @@ from comm import Basestations, Channel, Metrics, Mobility, Slices, Traffic, UEs
 
 
 class CommunicationEnv(gym.Env):
-
     metadata = {"render.modes": ["human"]}
 
     def __init__(
