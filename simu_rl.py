@@ -21,8 +21,8 @@ comm_env = CommunicationEnv(
 )
 check_env(comm_env)
 rl_agent = RLSimple(2, 2, [2, 2], comm_env)
-total_number_steps = 2000
-# rl_agent.train(total_number_steps)
+total_number_steps = 10000
+rl_agent.train(total_number_steps)
 
 obs = comm_env.reset()
 for step_number in tqdm(np.arange(total_number_steps)):

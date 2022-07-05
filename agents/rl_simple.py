@@ -68,7 +68,7 @@ class RLSimple(Agent):
 
     @staticmethod
     def get_action_space() -> spaces.Box:
-        return spaces.Box(low=-1, high=1, shape=(2, 2, 2))
+        return spaces.Box(low=-1, high=1, shape=(2 * 2 * 2,))
 
     @staticmethod
     def get_obs_space() -> spaces.Box:
@@ -81,6 +81,7 @@ class RLSimple(Agent):
         max_number_basestations: int,
         num_available_rbs: np.array,
     ) -> list:
+        action = np.reshape(action, (2, 2, 2))
         sched_decision = np.copy(action)
         sched_decision[0, 0] = (action[0, 0] >= action[0, 1]).astype(int)
         sched_decision[0, 1] = (action[0, 0] < action[0, 1]).astype(int)
