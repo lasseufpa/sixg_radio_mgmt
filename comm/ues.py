@@ -12,9 +12,9 @@ class UEs:
     def __init__(
         self,
         max_number_ues: int,
-        max_buffer_latencies: list,
-        max_buffer_pkts: list,
-        pkt_sizes: list,
+        max_buffer_latencies: np.array,
+        max_buffer_pkts: np.array,
+        pkt_sizes: np.array,
     ) -> None:
         self.max_number_ues = max_number_ues
         self.max_buffer_latencies = max_buffer_latencies
@@ -31,7 +31,7 @@ class UEs:
         spectral_efficiencies: list,
         bandwidth: float,
         num_available_rbs: int,
-        pkt_sizes: list,
+        pkt_sizes: np.array,
     ) -> list:
         return np.floor(
             np.sum(
@@ -45,10 +45,10 @@ class UEs:
 
     def update_ues(
         self,
-        ue_indexes: list,
-        max_buffer_latencies: list,
-        max_buffer_pkts: list,
-        pkt_sizes: list,
+        ue_indexes: np.array,
+        max_buffer_latencies: np.array,
+        max_buffer_pkts: np.array,
+        pkt_sizes: np.array,
     ) -> None:
         self.max_buffer_latencies[ue_indexes] = max_buffer_latencies
         self.max_buffer_pkts[ue_indexes] = max_buffer_pkts
@@ -61,10 +61,10 @@ class UEs:
     def step(
         self,
         sched_decision: list,
-        traffics: list,
+        traffics: np.array,
         spectral_efficiencies: list,
-        bandwidths: list,
-        num_available_rbs: list,
+        bandwidths: np.array,
+        num_available_rbs: np.array,
     ) -> dict:
         pkt_throughputs = np.zeros(self.max_number_ues)
         for basestation in np.arange(len(sched_decision)):

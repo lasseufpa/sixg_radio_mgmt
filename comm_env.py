@@ -19,29 +19,36 @@ class CommunicationEnv(gym.Env):
         MobilityClass: Mobility,
         config_file: str,
         action_format: Callable,
-        obs_space_format: Callable[[dict], list] = None,
+        obs_space_format: Callable[[dict], np.array] = None,
         calculate_reward: Callable[[dict], float] = None,
         obs_space: Callable = None,
         action_space: Callable = None,
+        debug: bool = True,
     ) -> None:
 
         with open("./env_config/{}.yml".format(config_file)) as file:
             data = yaml.safe_load(file)
 
         self.max_number_basestations = data["basestations"]["max_number_basestations"]
-        self.bandwidths = data["basestations"]["bandwidths"]  # In MHz
-        self.carrier_frequencies = data["basestations"]["carrier_frequencies"]  # In GHz
-        self.num_available_rbs = data["basestations"]["num_available_rbs"]
-        self.basestation_ue_assoc = data["basestations"]["basestation_ue_assoc"]
-        self.basestation_slice_assoc = data["basestations"]["basestation_slice_assoc"]
+        self.bandwidths = np.array(data["basestations"]["bandwidths"])  # In MHz
+        self.carrier_frequencies = np.array(
+            data["basestations"]["carrier_frequencies"]
+        )  # In GHz
+        self.num_available_rbs = np.array(data["basestations"]["num_available_rbs"])
+        self.basestation_ue_assoc = np.array(
+            data["basestations"]["basestation_ue_assoc"]
+        )
+        self.basestation_slice_assoc = np.array(
+            data["basestations"]["basestation_slice_assoc"]
+        )
 
         self.max_number_slices = data["slices"]["max_number_slices"]
-        self.slice_ue_assoc = data["slices"]["slice_ue_assoc"]
+        self.slice_ue_assoc = np.array(data["slices"]["slice_ue_assoc"])
 
         self.max_number_ues = data["ues"]["max_number_ues"]
-        self.max_buffer_latencies = data["ues"]["max_buffer_latencies"]
-        self.max_buffer_pkts = data["ues"]["max_buffer_pkts"]
-        self.pkt_sizes = data["ues"]["pkt_sizes"]  # In bits
+        self.max_buffer_latencies = np.array(data["ues"]["max_buffer_latencies"])
+        self.max_buffer_pkts = np.array(data["ues"]["max_buffer_pkts"])
+        self.pkt_sizes = np.array(data["ues"]["pkt_sizes"])  # In bits
 
         self.step_number = 0  # Initial simulation step
         self.episode_number = 1  # Initial episode
@@ -53,6 +60,8 @@ class CommunicationEnv(gym.Env):
         ]  # Maximum number of simulated episodes
         self.hist_root_path = data["simulation"]["hist_root_path"]
         self.simu_name = data["simulation"]["simu_name"]
+        self.mobility_size = 2  # X and Y axis
+        self.debug = debug
 
         self.obs_space_format = (
             obs_space_format
@@ -99,14 +108,20 @@ class CommunicationEnv(gym.Env):
         )
         traffics = self.traffic.step(self.step_number, self.episode_number)
 
-        if self.verify_sched_decision(sched_decision):
-            step_hist = self.ues.step(
+        if self.debug:
+            self.check_env_agent(
                 sched_decision,
-                traffics,
                 spectral_efficiencies,
-                self.bandwidths,
-                self.num_available_rbs,
+                mobilities,
+                traffics,
             )
+        step_hist = self.ues.step(
+            sched_decision,
+            traffics,
+            spectral_efficiencies,
+            self.bandwidths,
+            self.num_available_rbs,
+        )
         step_hist.update(
             {
                 "mobility": mobilities,
@@ -175,17 +190,48 @@ class CommunicationEnv(gym.Env):
         return 0
 
     @staticmethod
-    def obs_space_format_default(obs_space: dict) -> list:
+    def obs_space_format_default(obs_space: dict) -> np.array:
         return obs_space
 
-    @staticmethod
-    def verify_sched_decision(sched_decision: list) -> bool:
-        for basestation_sched in sched_decision:
+    def check_env_agent(
+        self,
+        sched_decision: list,
+        spectral_efficiencies: list,
+        mobilities: np.array,
+        traffics: np.array,
+    ) -> None:
+        # Scheduling decision check
+        assert len(sched_decision) == self.max_number_basestations and isinstance(
+            sched_decision, list
+        ), "Sched decision shape does not match the number of basestations or is not of type list"
+        for i, basestation_sched in enumerate(sched_decision):
+            basestation_sched = np.array(basestation_sched)
+            assert basestation_sched.shape == (
+                self.max_number_ues,
+                self.num_available_rbs[i],
+            ), "Scheduling decision does not present the correct shape"
             if np.sum(np.sum(basestation_sched, axis=0) > 1) > 0:
                 raise Exception(
                     "Scheduling decision allocated the same RB for more than one UE"
                 )
-        return True
+        # Spectral efficiency check
+        assert isinstance(
+            spectral_efficiencies, list
+        ), "Spectral efficiencies are not list type"
+        for i, basestation_spec in enumerate(spectral_efficiencies):
+            assert basestation_spec.shape == (
+                self.max_number_ues,
+                self.num_available_rbs[i],
+            ), "Spectral efficiences have wrong shape."
+        # Mobility check
+        assert isinstance(mobilities, np.ndarray) and mobilities.shape == (
+            self.max_number_ues,
+            self.mobility_size,
+        ), "Mobility values are not numpy arrays or have wrong shape."
+        # Traffics check
+        assert isinstance(traffics, np.ndarray) and traffics.shape == (
+            self.max_number_ues,
+        ), "Traffics values are not numpy arrays or have wrong shape."
 
     def create_scenario(self) -> None:
         self.ues = UEs(

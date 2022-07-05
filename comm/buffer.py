@@ -54,13 +54,13 @@ class Buffer:
         self.cumulative_buffer += tmp_buffer - self.buffer
         self.sent_packets = np.sum(tmp_buffer) - np.sum(self.buffer)
 
-    def get_buffer_occupancy(self) -> list:
+    def get_buffer_occupancy(self) -> np.array:
         """
         Return the buffer occupancy rate.
         """
         return np.sum(self.buffer) / self.max_packets_buffer
 
-    def get_avg_delay(self) -> list:
+    def get_avg_delay(self) -> np.array:
         """
         Return the average time that packets waited in the buffer. It is important
         to emphasize it considers only the packets transmitted, so the remaining

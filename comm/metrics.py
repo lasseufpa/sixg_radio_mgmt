@@ -69,10 +69,10 @@ class Plots:
     @staticmethod
     def plot(
         xlabel: str,
-        x_data: list,
+        x_data: np.array,
         ylabel: str,
-        y_data: list,
-        y_data_label: list,
+        y_data: np.array,
+        y_data_label: np.array,
         fig_name: str,
         metric: str,
     ) -> None:
@@ -98,7 +98,7 @@ class Plots:
 
 
 def main():
-    data = Metrics.read("./", "test_rl", 1)
+    data = Metrics.read("./", "test", 1)
 
     metrics = [
         "pkt_incoming",

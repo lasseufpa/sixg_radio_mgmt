@@ -11,7 +11,7 @@ class RLSimple(Agent):
         self,
         max_number_ues: int,
         max_number_basestations: int,
-        num_available_rbs: list,
+        num_available_rbs: np.array,
         env: CommunicationEnv,
         hyperparameters: dict = {},
         seed: int = 0,
@@ -25,14 +25,14 @@ class RLSimple(Agent):
             seed=seed,
         )
 
-    def step(self, obs_space: list) -> list:
+    def step(self, obs_space: np.array) -> np.array:
         return self.agent.predict(obs_space, deterministic=True)[0]
 
     def train(self, total_timesteps: int) -> None:
         self.agent.learn(total_timesteps=int(total_timesteps), callback=[])
 
     @staticmethod
-    def obs_space_format(obs_space: dict) -> list:
+    def obs_space_format(obs_space: dict) -> np.array:
         formatted_obs_space = []
         hist_labels = [
             # "pkt_incoming",
@@ -70,10 +70,10 @@ class RLSimple(Agent):
 
     @staticmethod
     def action_format(
-        action: list,
+        action: np.array,
         max_number_ues: int,
         max_number_basestations: int,
-        num_available_rbs: list,
+        num_available_rbs: np.array,
     ) -> list:
         idx_chosen_ue = np.argmax(action)
         sched_decision = [

@@ -11,7 +11,7 @@ class Slices:
         self,
         max_number_slices: int,
         max_number_ues: int,
-        slice_ue_assoc: list,
+        slice_ue_assoc: np.array,
         slice_requirements: dict = None,
     ) -> None:
         self.max_number_slices = max_number_slices
@@ -21,14 +21,14 @@ class Slices:
 
     def update_assoc(
         self,
-        slice_ue_assoc: list,
+        slice_ue_assoc: np.array,
     ) -> None:
         self.slice_ue_assoc = slice_ue_assoc
 
     def update_slice_req(self, slice_requirements: dict) -> None:
         self.slice_requirements = slice_requirements
 
-    def get_number_ue_per_slice(self) -> list:
+    def get_number_ue_per_slice(self) -> np.array:
         return np.sum(self.slice_ue_assoc, axis=1)
 
 
