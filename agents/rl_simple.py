@@ -31,6 +31,12 @@ class RLSimple(Agent):
     def train(self, total_timesteps: int) -> None:
         self.agent.learn(total_timesteps=int(total_timesteps), callback=[])
 
+    def save(self, filename: str) -> None:
+        self.agent.save(filename)
+
+    def load(self, filename: str, env: CommunicationEnv) -> None:
+        self.agent = SAC.load(filename, env=env)
+
     @staticmethod
     def obs_space_format(obs_space: dict) -> np.array:
         formatted_obs_space = []
@@ -62,7 +68,7 @@ class RLSimple(Agent):
 
     @staticmethod
     def get_action_space() -> spaces.Box:
-        return spaces.Box(low=-1, high=1, shape=(2,))
+        return spaces.Box(low=-1, high=1, shape=(2, 2, 2))
 
     @staticmethod
     def get_obs_space() -> spaces.Box:
@@ -75,17 +81,13 @@ class RLSimple(Agent):
         max_number_basestations: int,
         num_available_rbs: np.array,
     ) -> list:
-        idx_chosen_ue = np.argmax(action)
-        sched_decision = [
-            [
-                np.ones(num_available_rbs)
-                if ue == idx_chosen_ue
-                else np.zeros(num_available_rbs)
-                for ue in np.arange(max_number_ues)
-            ]
-        ]
+        sched_decision = np.copy(action)
+        sched_decision[0, 0] = (action[0, 0] >= action[0, 1]).astype(int)
+        sched_decision[0, 1] = (action[0, 0] < action[0, 1]).astype(int)
+        sched_decision[1, 0] = (action[1, 0] >= action[1, 1]).astype(int)
+        sched_decision[1, 1] = (action[1, 0] < action[1, 1]).astype(int)
 
-        return sched_decision
+        return sched_decision.tolist()
 
 
 def main():

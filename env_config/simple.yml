@@ -4,7 +4,7 @@ basestations:
   bandwidths: [2, 2]
   carrier_frequencies: [28, 28]
   num_available_rbs: [2, 2]
-  basestation_ue_assoc: [[1, 0], [0, 1]]
+  basestation_ue_assoc: [[1, 1], [1, 1]]
   basestation_slice_assoc: [[1], [1]]
 slices:
   max_number_slices: 1
