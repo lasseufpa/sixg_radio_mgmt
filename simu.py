@@ -18,11 +18,9 @@ comm_env = CommunicationEnv(
     round_robin.calculate_reward,
 )
 obs = comm_env.reset()
-for episode in np.arange(1, comm_env.max_number_episodes + 1):
-    print("Episode ", episode)
-    for step_number in tqdm(np.arange(comm_env.max_number_steps)):
-        sched_decision = round_robin.step(obs)
-        print(sched_decision)
-        obs, _, _, _ = comm_env.step(sched_decision)
-        if step_number == comm_env.max_number_steps - 1:
-            comm_env.reset()
+number_steps = 10
+for step_number in tqdm(np.arange(comm_env.max_number_steps)):
+    sched_decision = round_robin.step(obs)
+    obs, _, end_ep, _ = comm_env.step(sched_decision)
+    if end_ep:
+        comm_env.reset()

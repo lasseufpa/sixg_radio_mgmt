@@ -150,8 +150,10 @@ class CommunicationEnv(gym.Env):
         )
 
     def reset(self, initial_episode: int = -1) -> None:
-        if (self.step_number == 0 and self.episode_number == 1) or (
-            self.episode_number == self.max_number_episodes
+        if (
+            (self.step_number == 0 and self.episode_number == 1)
+            or (self.episode_number == self.max_number_episodes)
+            or initial_episode != -1
         ):
             self.episode_number = 1 if initial_episode == -1 else initial_episode
         elif self.episode_number < self.max_number_episodes:
