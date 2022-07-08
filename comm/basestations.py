@@ -6,40 +6,38 @@ class Basestations:
         self,
         max_number_basestations: int,
         max_number_slices: int,
-        basestation_slice_assoc: np.array,
-        basestation_ue_assoc: np.array,
+        slice_assoc: np.array,
+        ue_assoc: np.array,
         bandwidths: np.array,
         carrier_frequencies: np.array,
         num_available_rbs: np.array,
     ) -> None:
         self.max_number_basestations = max_number_basestations
         self.max_number_slices = max_number_slices
-        self.basestation_slice_assoc = (
-            basestation_slice_assoc  # Matrix with dimensions |basestations|x|slices|
-        )
-        self.basestation_ue_assoc = basestation_ue_assoc
+        self.slice_assoc = slice_assoc  # Matrix with dimensions |basestations|x|slices|
+        self.ue_assoc = ue_assoc
         self.bandwidths = bandwidths
         self.carrier_frequencies = carrier_frequencies
         self.num_available_rbs = num_available_rbs
 
     def get_assoc(self) -> np.array:
-        return self.basestation_slice_assoc
+        return self.slice_assoc
 
     def update_assoc(
         self,
-        basestation_slice_assoc: np.array,
-        basestation_ue_assoc: np.array,
+        slice_assoc: np.array = None,
+        ue_assoc: np.array = None,
     ) -> None:
-        self.basestation_slice_assoc = basestation_slice_assoc
-        self.basestation_ue_assoc = basestation_ue_assoc
+        self.slice_assoc = slice_assoc if slice_assoc is not None else self.slice_assoc
+        self.ue_assoc = ue_assoc if ue_assoc is not None else self.ue_assoc
 
     def get_number_slices_per_basestation(self) -> np.array:
-        return np.sum(self.basestation_slice_assoc, axis=1)
+        return np.sum(self.slice_assoc, axis=1)
 
 
 def main():
-    basestation_slice_assoc = np.array([[0, 1, 1, 1], [1, 0, 0, 1]])
-    basestations = Basestations(2, 4, basestation_slice_assoc)
+    slice_assoc = np.array([[0, 1, 1, 1], [1, 0, 0, 1]])
+    basestations = Basestations(2, 4, slice_assoc)
     print(
         "Number of slices per basestation: {}".format(
             basestations.get_number_slices_per_basestation()

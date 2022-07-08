@@ -34,15 +34,15 @@ class CommunicationEnv(gym.Env):
             data["basestations"]["carrier_frequencies"]
         )  # In GHz
         self.num_available_rbs = np.array(data["basestations"]["num_available_rbs"])
-        self.basestation_ue_assoc = np.array(
+        self.init_basestation_ue_assoc = np.array(
             data["basestations"]["basestation_ue_assoc"]
         )
-        self.basestation_slice_assoc = np.array(
+        self.init_basestation_slice_assoc = np.array(
             data["basestations"]["basestation_slice_assoc"]
         )
 
         self.max_number_slices = data["slices"]["max_number_slices"]
-        self.slice_ue_assoc = np.array(data["slices"]["slice_ue_assoc"])
+        self.init_slice_ue_assoc = np.array(data["slices"]["slice_ue_assoc"])
 
         self.max_number_ues = data["ues"]["max_number_ues"]
         self.max_buffer_latencies = np.array(data["ues"]["max_buffer_latencies"])
@@ -59,6 +59,7 @@ class CommunicationEnv(gym.Env):
         ]  # Maximum number of simulated episodes
         self.hist_root_path = data["simulation"]["hist_root_path"]
         self.simu_name = data["simulation"]["simu_name"]
+        self.associations = data["associations"]
         self.mobility_size = 2  # X and Y axis
         self.debug = debug
 
@@ -125,9 +126,9 @@ class CommunicationEnv(gym.Env):
             {
                 "mobility": mobilities,
                 "spectral_efficiencies": spectral_efficiencies,
-                "basestation_ue_assoc": self.basestation_ue_assoc,
-                "basestation_slice_assoc": self.basestation_slice_assoc,
-                "slice_ue_assoc": self.slice_ue_assoc,
+                "basestation_ue_assoc": self.basestations.ue_assoc,
+                "basestation_slice_assoc": self.basestations.slice_assoc,
+                "slice_ue_assoc": self.slices.ue_assoc,
                 "sched_decision": sched_decision,
             }
         )
@@ -137,6 +138,16 @@ class CommunicationEnv(gym.Env):
 
         step_hist.update({"reward": reward})
         self.metrics_hist.step(step_hist)
+
+        if self.step_number in self.associations["timeline"]:
+            idx_timeline = np.equal(
+                self.step_number, self.associations["timeline"]
+            ).nonzero()[0][0]
+            self.slices.update_assoc(self.associations["slice_ue_assoc"][idx_timeline])
+            self.basestations.update_assoc(
+                slice_assoc=self.associations["basestation_slice_assoc"][idx_timeline],
+                ue_assoc=self.associations["basestation_ue_assoc"][idx_timeline],
+            )
 
         if self.step_number == self.max_number_steps:
             self.metrics_hist.save(self.simu_name, self.episode_number)
@@ -172,9 +183,9 @@ class CommunicationEnv(gym.Env):
             "spectral_efficiencies": self.channel.step(
                 self.step_number, self.episode_number, initial_positions
             ),
-            "basestation_ue_assoc": self.basestation_ue_assoc,
-            "basestation_slice_assoc": self.basestation_slice_assoc,
-            "slice_ue_assoc": self.slice_ue_assoc,
+            "basestation_ue_assoc": self.basestations.ue_assoc,
+            "basestation_slice_assoc": self.basestations.slice_assoc,
+            "slice_ue_assoc": self.slices.ue_assoc,
             "sched_decision": [],
             "pkt_incoming": self.traffic.step(self.step_number, self.episode_number),
             "pkt_throughputs": np.zeros(self.max_number_ues),
@@ -242,13 +253,13 @@ class CommunicationEnv(gym.Env):
             self.pkt_sizes,
         )
         self.slices = Slices(
-            self.max_number_slices, self.max_number_ues, self.slice_ue_assoc
+            self.max_number_slices, self.max_number_ues, self.init_slice_ue_assoc
         )
         self.basestations = Basestations(
             self.max_number_basestations,
             self.max_number_slices,
-            self.basestation_slice_assoc,
-            self.basestation_ue_assoc,
+            self.init_basestation_slice_assoc,
+            self.init_basestation_ue_assoc,
             self.bandwidths,
             self.carrier_frequencies,
             self.num_available_rbs,
