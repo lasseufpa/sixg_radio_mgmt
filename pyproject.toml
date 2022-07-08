@@ -14,3 +14,7 @@ exclude = '''
   | dist
 )/
 '''
+
+[tool.pyright]
+include = ["./"]
+useLibraryCodeForTypes = true
