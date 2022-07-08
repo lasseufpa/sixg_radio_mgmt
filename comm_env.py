@@ -130,6 +130,7 @@ class CommunicationEnv(gym.Env):
                 "basestation_slice_assoc": self.basestations.slice_assoc,
                 "slice_ue_assoc": self.slices.ue_assoc,
                 "sched_decision": sched_decision,
+                "slice_req": self.slices.requirements,
             }
         )
         self.step_number += 1
@@ -193,6 +194,7 @@ class CommunicationEnv(gym.Env):
             "buffer_occupancies": np.zeros(self.max_number_ues),
             "buffer_latencies": np.zeros(self.max_number_ues),
             "dropped_pkts": np.zeros(self.max_number_ues),
+            "slice_req": self.slices.requirements,
         }
 
         return self.obs_space_format(obs)

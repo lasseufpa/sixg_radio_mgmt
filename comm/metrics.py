@@ -25,6 +25,7 @@ class Metrics:
             "slice_ue_assoc": [],
             "sched_decision": [],
             "reward": [],
+            "slice_req": [],
         }
 
     def step(self, hist) -> None:
@@ -46,7 +47,7 @@ class Metrics:
     @staticmethod
     def read(root_path: str, simu_name: str, episode_number: int) -> Dict:
         path = "{}/hist/{}/ep_{}.npz".format(root_path, simu_name, episode_number)
-        data = np.load(path)
+        data = np.load(path, allow_pickle=True)
         data_dict = {
             "pkt_incoming": data.f.pkt_incoming,
             "pkt_throughputs": data.f.pkt_throughputs,
@@ -61,6 +62,7 @@ class Metrics:
             "slice_ue_assoc": data.f.slice_ue_assoc,
             "sched_decision": data.f.sched_decision,
             "reward": data.f.reward,
+            "slice_req": data.f.slice_req,
         }
         return data_dict
 
