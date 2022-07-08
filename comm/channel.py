@@ -8,14 +8,16 @@ class Channel(ABC):
         self,
         max_number_ues: int,
         max_number_basestations: int,
-        num_available_rbs: np.array,
+        num_available_rbs: np.ndarray,
     ) -> None:
         self.max_number_ues = max_number_ues
         self.max_number_basestations = max_number_basestations
         self.num_available_rbs = num_available_rbs
 
     @abstractmethod
-    def step(self, step_number: int, episode_number: int, mobilities: np.array) -> list:
+    def step(
+        self, step_number: int, episode_number: int, mobilities: np.ndarray
+    ) -> np.ndarray:
         pass
 
 

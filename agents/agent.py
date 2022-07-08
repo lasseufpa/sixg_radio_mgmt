@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 import numpy as np
 
@@ -8,31 +9,31 @@ class Agent(ABC):
         self,
         max_number_ues: int,
         max_number_basestations: int,
-        num_available_rbs: np.array,
+        num_available_rbs: np.ndarray,
     ) -> None:
         self.max_number_ues = max_number_ues
         self.max_number_basestations = max_number_basestations
         self.num_available_rbs = num_available_rbs
 
     @abstractmethod
-    def step(self, obs_space: np.array) -> np.array:
+    def step(self, obs_space: np.ndarray) -> np.ndarray:
         pass
 
     @staticmethod
     @abstractmethod
-    def obs_space_format(obs_space: dict) -> np.array:
+    def obs_space_format(obs_space: dict) -> Any:
         pass
 
     @staticmethod
     @abstractmethod
-    def calculate_reward(obs_space: dict) -> np.float:
+    def calculate_reward(obs_space: dict) -> float:
         pass
 
     @staticmethod
     def action_format(
-        action: np.array,
+        action: np.ndarray,
         max_number_ues: int,
         max_number_basestations: int,
-        num_available_rbs: np.array,
-    ) -> list:
-        return action.tolist()
+        num_available_rbs: np.ndarray,
+    ) -> np.ndarray:
+        return action

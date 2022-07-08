@@ -1,4 +1,4 @@
-from email.mime import base
+from typing import Any
 
 import numpy as np
 
@@ -10,11 +10,11 @@ class RoundRobin(Agent):
         self,
         max_number_ues: int,
         max_number_basestations: int,
-        num_available_rbs: np.array,
+        num_available_rbs: np.ndarray,
     ) -> None:
         super().__init__(max_number_ues, max_number_basestations, num_available_rbs)
 
-    def step(self, obs_space: dict) -> np.array:
+    def step(self, obs_space: Any) -> np.ndarray:
         allocation_rbs = [
             np.zeros((self.max_number_ues, self.num_available_rbs[basestation]))
             for basestation in np.arange(self.max_number_basestations)
@@ -58,14 +58,3 @@ class RoundRobin(Agent):
     @staticmethod
     def calculate_reward(obs_space: dict) -> float:
         return 0
-
-
-def main():
-    rr = RoundRobin(3, 2, [8, 8])
-    basestation_ue_assoc = [[1, 1, 1], [1, 1, 1]]
-    for i in range(1):
-        print(rr.step(basestation_ue_assoc))
-
-
-if __name__ == "__main__":
-    main()

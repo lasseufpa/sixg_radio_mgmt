@@ -1,6 +1,6 @@
 import numpy as np
 from gym import spaces
-from stable_baselines3 import SAC
+from stable_baselines3.sac.sac import SAC
 
 from agents.agent import Agent
 from comm_env import CommunicationEnv
@@ -11,7 +11,7 @@ class RLSimple(Agent):
         self,
         max_number_ues: int,
         max_number_basestations: int,
-        num_available_rbs: np.array,
+        num_available_rbs: np.ndarray,
         env: CommunicationEnv,
         hyperparameters: dict = {},
         seed: int = 0,
@@ -25,7 +25,7 @@ class RLSimple(Agent):
             seed=seed,
         )
 
-    def step(self, obs_space: np.array) -> np.array:
+    def step(self, obs_space: np.ndarray) -> np.ndarray:
         return self.agent.predict(obs_space, deterministic=True)[0]
 
     def train(self, total_timesteps: int) -> None:
@@ -38,8 +38,8 @@ class RLSimple(Agent):
         self.agent = SAC.load(filename, env=env)
 
     @staticmethod
-    def obs_space_format(obs_space: dict) -> np.array:
-        formatted_obs_space = []
+    def obs_space_format(obs_space: dict) -> np.ndarray:
+        formatted_obs_space = np.array([])
         hist_labels = [
             # "pkt_incoming",
             "dropped_pkts",
@@ -76,11 +76,11 @@ class RLSimple(Agent):
 
     @staticmethod
     def action_format(
-        action: np.array,
+        action: np.ndarray,
         max_number_ues: int,
         max_number_basestations: int,
-        num_available_rbs: np.array,
-    ) -> list:
+        num_available_rbs: np.ndarray,
+    ) -> np.ndarray:
         action = np.reshape(action, (2, 2, 2))
         sched_decision = np.copy(action)
         sched_decision[0, 0] = (action[0, 0] >= action[0, 1]).astype(int)
@@ -88,12 +88,4 @@ class RLSimple(Agent):
         sched_decision[1, 0] = (action[1, 0] >= action[1, 1]).astype(int)
         sched_decision[1, 1] = (action[1, 0] < action[1, 1]).astype(int)
 
-        return sched_decision.tolist()
-
-
-def main():
-    pass
-
-
-if __name__ == "__main__":
-    main()
+        return sched_decision

@@ -1,6 +1,7 @@
 import os
 from typing import Dict
 
+import matplotlib.figure as matfig
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -8,7 +9,7 @@ import numpy as np
 class Metrics:
     def __init__(
         self,
-        root_path=str,
+        root_path: str,
     ) -> None:
         self.root_path = root_path
         self.metrics_hist = {
@@ -28,7 +29,7 @@ class Metrics:
             "slice_req": [],
         }
 
-    def step(self, hist) -> None:
+    def step(self, hist: dict) -> None:
         for metric in hist.keys():
             self.metrics_hist[metric].append(hist[metric])
 
@@ -71,14 +72,14 @@ class Plots:
     @staticmethod
     def plot(
         xlabel: str,
-        x_data: np.array,
+        x_data: np.ndarray,
         ylabel: str,
-        y_data: np.array,
-        y_data_label: np.array,
+        y_data: np.ndarray,
+        y_data_label: np.ndarray,
         fig_name: str,
         metric: str,
     ) -> None:
-        w, h = plt.figaspect(0.6)
+        w, h = matfig.figaspect(0.6)
         fig = plt.figure(figsize=(w, h))
         plt.xlabel(xlabel, fontsize=14)
         plt.ylabel(ylabel, fontsize=14)
@@ -112,12 +113,15 @@ def main():
     ]
     # traffics
     for metric in metrics:
+        labels = np.array(
+            ["ue {}".format(i) for i in np.arange(1, data[metric].shape[1] + 1)]
+        )
         Plots.plot(
             "Step n",
             np.arange(data[metric].shape[0]),
             "Packets",
             data[metric],
-            ["ue {}".format(i) for i in np.arange(1, data[metric].shape[1] + 1)],
+            labels,
             "test",
             metric,
         )

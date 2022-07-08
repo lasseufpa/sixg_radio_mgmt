@@ -1,9 +1,8 @@
-from typing import Any, Callable
+from typing import Any, Callable, Optional, Tuple, Type
 
 import gym
 import numpy as np
 import yaml
-from tqdm import tqdm
 
 from comm import Basestations, Channel, Metrics, Mobility, Slices, Traffic, UEs
 
@@ -13,15 +12,15 @@ class CommunicationEnv(gym.Env):
 
     def __init__(
         self,
-        ChannelClass: Channel,
-        TrafficClass: Traffic,
-        MobilityClass: Mobility,
+        ChannelClass: Type[Channel],
+        TrafficClass: Type[Traffic],
+        MobilityClass: Type[Mobility],
         config_file: str,
-        action_format: Callable,
-        obs_space_format: Callable[[dict], np.array] = None,
-        calculate_reward: Callable[[dict], float] = None,
-        obs_space: Callable = None,
-        action_space: Callable = None,
+        action_format: Callable[[np.ndarray, int, int, np.ndarray], np.ndarray],
+        obs_space_format: Optional[Callable[[dict], Any]] = None,
+        calculate_reward: Optional[Callable[[dict], float]] = None,
+        obs_space: Optional[Callable] = None,
+        action_space: Optional[Callable] = None,
         debug: bool = True,
     ) -> None:
 
@@ -78,12 +77,14 @@ class CommunicationEnv(gym.Env):
         self.TrafficClass = TrafficClass
         self.MobilityClass = MobilityClass
 
-        self.observation_space = obs_space() if obs_space is not None else obs_space
-        self.action_space = action_space() if obs_space is not None else obs_space
+        if obs_space is not None:
+            self.observation_space = obs_space()
+        if action_space is not None:
+            self.action_space = action_space()
 
         self.create_scenario()
 
-    def step(self, sched_decision: list) -> None:
+    def step(self, sched_decision: np.ndarray) -> Tuple[np.ndarray, float, bool, dict]:
         """
         sched_decisions is a matrix with dimensions BxNxM where B represents
         the number of basestations, N represents the maximum number of UEs
@@ -160,7 +161,7 @@ class CommunicationEnv(gym.Env):
             {},
         )
 
-    def reset(self, initial_episode: int = -1) -> None:
+    def reset(self, initial_episode: int = -1) -> Any:
         if (
             (self.step_number == 0 and self.episode_number == 1)
             or (self.episode_number == self.max_number_episodes)
@@ -204,19 +205,19 @@ class CommunicationEnv(gym.Env):
         return 0
 
     @staticmethod
-    def obs_space_format_default(obs_space: dict) -> np.array:
-        return obs_space
+    def obs_space_format_default(obs_space: dict) -> Any:
+        return np.array(list(obs_space.items()), dtype=object)
 
     def check_env_agent(
         self,
-        sched_decision: list,
-        spectral_efficiencies: list,
-        mobilities: np.array,
-        traffics: np.array,
+        sched_decision: np.ndarray,
+        spectral_efficiencies: np.ndarray,
+        mobilities: np.ndarray,
+        traffics: np.ndarray,
     ) -> None:
         # Scheduling decision check
         assert len(sched_decision) == self.max_number_basestations and isinstance(
-            sched_decision, list
+            sched_decision, np.ndarray
         ), "Sched decision shape does not match the number of basestations or is not of type list"
         for i, basestation_sched in enumerate(sched_decision):
             basestation_sched = np.array(basestation_sched)
@@ -230,7 +231,7 @@ class CommunicationEnv(gym.Env):
                 )
         # Spectral efficiency check
         assert isinstance(
-            spectral_efficiencies, list
+            spectral_efficiencies, np.ndarray
         ), "Spectral efficiencies are not list type"
         for i, basestation_spec in enumerate(spectral_efficiencies):
             assert basestation_spec.shape == (
@@ -274,19 +275,3 @@ class CommunicationEnv(gym.Env):
         )
         self.traffic = self.TrafficClass(self.max_number_ues)
         self.metrics_hist = Metrics(self.hist_root_path)
-
-
-def main():
-    comm_env = CommunicationEnv()
-    sched_decision = [[[1, 0], [0, 0]], [[0, 0], [1, 0]]]
-    comm_env.reset()
-    for episode in np.arange(1, comm_env.max_number_episodes + 1):
-        print("Episode ", episode)
-        for step_number in tqdm(np.arange(comm_env.max_number_steps)):
-            comm_env.step(sched_decision)
-            if step_number == comm_env.max_number_steps - 1:
-                comm_env.reset()
-
-
-if __name__ == "__main__":
-    main()

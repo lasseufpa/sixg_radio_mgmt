@@ -51,16 +51,16 @@ class Buffer:
                 else:
                     self.buffer[i] -= packets_available_to_send
                     break
-        self.cumulative_buffer += tmp_buffer - self.buffer
+        self.cumulative_buffer += np.subtract(tmp_buffer, self.buffer)
         self.sent_packets = np.sum(tmp_buffer) - np.sum(self.buffer)
 
-    def get_buffer_occupancy(self) -> np.array:
+    def get_buffer_occupancy(self) -> np.ndarray:
         """
         Return the buffer occupancy rate.
         """
         return np.sum(self.buffer) / self.max_packets_buffer
 
-    def get_avg_delay(self) -> np.array:
+    def get_avg_delay(self) -> float:
         """
         Return the average time that packets waited in the buffer. It is important
         to emphasize it considers only the packets transmitted, so the remaining

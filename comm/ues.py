@@ -12,9 +12,9 @@ class UEs:
     def __init__(
         self,
         max_number_ues: int,
-        max_buffer_latencies: np.array,
-        max_buffer_pkts: np.array,
-        pkt_sizes: np.array,
+        max_buffer_latencies: np.ndarray,
+        max_buffer_pkts: np.ndarray,
+        pkt_sizes: np.ndarray,
     ) -> None:
         self.max_number_ues = max_number_ues
         self.max_buffer_latencies = max_buffer_latencies
@@ -27,11 +27,11 @@ class UEs:
 
     @staticmethod
     def get_pkt_throughputs(
-        sched_decision: list,
-        spectral_efficiencies: list,
+        sched_decision: np.ndarray,
+        spectral_efficiencies: np.ndarray,
         bandwidth: float,
         num_available_rbs: int,
-        pkt_sizes: np.array,
+        pkt_sizes: np.ndarray,
     ) -> list:
         return np.floor(
             np.sum(
@@ -45,10 +45,10 @@ class UEs:
 
     def update_ues(
         self,
-        ue_indexes: np.array,
-        max_buffer_latencies: np.array,
-        max_buffer_pkts: np.array,
-        pkt_sizes: np.array,
+        ue_indexes: np.ndarray,
+        max_buffer_latencies: np.ndarray,
+        max_buffer_pkts: np.ndarray,
+        pkt_sizes: np.ndarray,
     ) -> None:
         self.max_buffer_latencies[ue_indexes] = max_buffer_latencies
         self.max_buffer_pkts[ue_indexes] = max_buffer_pkts
@@ -60,11 +60,11 @@ class UEs:
 
     def step(
         self,
-        sched_decision: list,
-        traffics: np.array,
-        spectral_efficiencies: list,
-        bandwidths: np.array,
-        num_available_rbs: np.array,
+        sched_decision: np.ndarray,
+        traffics: np.ndarray,
+        spectral_efficiencies: np.ndarray,
+        bandwidths: np.ndarray,
+        num_available_rbs: np.ndarray,
     ) -> dict:
         pkt_throughputs = np.zeros(self.max_number_ues)
         for basestation in np.arange(len(sched_decision)):
@@ -90,29 +90,3 @@ class UEs:
             "buffer_latencies": [buffer.get_avg_delay() for buffer in self.buffers],
             "dropped_pkts": [buffer.dropped_packets for buffer in self.buffers],
         }
-
-
-def main():
-    ues = UEs(
-        max_number_ues=4,
-        max_buffer_latencies=[10, 10, 10, 10],
-        max_buffer_pkts=[20, 10, 20, 10],
-        pkt_sizes=[1, 1, 1, 1],
-    )
-    sched_decision = [
-        [[1, 0, 1, 1, 0], [0, 1, 0, 0, 1], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]],
-        [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [1, 0, 1, 1, 0], [0, 1, 0, 0, 1]],
-    ]
-    traffics = [4, 4, 4, 4]
-    spectral_efficiences = [
-        [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]],
-        [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]],
-    ]
-    steps = 10
-    for i in np.arange(steps):
-        info = ues.step(sched_decision, traffics, spectral_efficiences)
-        print("Step {}:\n{}".format(i, info))
-
-
-if __name__ == "__main__":
-    main()

@@ -20,7 +20,7 @@ comm_env = CommunicationEnv(
     RLSimple.get_action_space,
 )
 check_env(comm_env)
-rl_agent = RLSimple(2, 2, [2, 2], comm_env)
+rl_agent = RLSimple(2, 2, np.array([2, 2]), comm_env)
 total_number_steps = 10000
 rl_agent.train(total_number_steps)
 

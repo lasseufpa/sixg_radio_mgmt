@@ -7,7 +7,7 @@ from comm_env import CommunicationEnv
 from mobilities.simple import SimpleMobility
 from traffics.simple import SimpleTraffic
 
-round_robin = RoundRobin(2, 2, [2, 2])
+round_robin = RoundRobin(2, 2, np.array([2, 2]))
 comm_env = CommunicationEnv(
     SimpleChannel,
     SimpleTraffic,
