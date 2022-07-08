@@ -1,4 +1,4 @@
-name: Python Lint
+name: Python type check
 
 on:
   push:
