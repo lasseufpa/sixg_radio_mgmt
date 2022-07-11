@@ -1,3 +1,5 @@
+from typing import Union
+
 import numpy as np
 from gym import spaces
 from stable_baselines3.sac.sac import SAC
@@ -25,8 +27,8 @@ class RLSimple(Agent):
             seed=seed,
         )
 
-    def step(self, obs_space: np.ndarray) -> np.ndarray:
-        return self.agent.predict(obs_space, deterministic=True)[0]
+    def step(self, obs_space: Union[np.ndarray, dict]) -> np.ndarray:
+        return self.agent.predict(np.asarray(obs_space), deterministic=True)[0]
 
     def train(self, total_timesteps: int) -> None:
         self.agent.learn(total_timesteps=int(total_timesteps), callback=[])

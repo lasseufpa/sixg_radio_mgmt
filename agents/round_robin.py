@@ -1,3 +1,5 @@
+from typing import Union
+
 import numpy as np
 
 from agents.agent import Agent
@@ -12,7 +14,7 @@ class RoundRobin(Agent):
     ) -> None:
         super().__init__(max_number_ues, max_number_basestations, num_available_rbs)
 
-    def step(self, obs_space: np.ndarray) -> np.ndarray:
+    def step(self, obs_space: Union[np.ndarray, dict]) -> np.ndarray:
         allocation_rbs = [
             np.zeros((self.max_number_ues, self.num_available_rbs[basestation]))
             for basestation in np.arange(self.max_number_basestations)

@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional, Tuple, Type
+from typing import Callable, Optional, Tuple, Type, Union
 
 import gym
 import numpy as np
@@ -17,7 +17,7 @@ class CommunicationEnv(gym.Env):
         MobilityClass: Type[Mobility],
         config_file: str,
         action_format: Callable[[np.ndarray, int, int, np.ndarray], np.ndarray],
-        obs_space_format: Optional[Callable[[dict], Any]] = None,
+        obs_space_format: Optional[Callable[[dict], Union[np.ndarray, dict]]] = None,
         calculate_reward: Optional[Callable[[dict], float]] = None,
         obs_space: Optional[Callable] = None,
         action_space: Optional[Callable] = None,
@@ -84,7 +84,9 @@ class CommunicationEnv(gym.Env):
 
         self.create_scenario()
 
-    def step(self, sched_decision: np.ndarray) -> Tuple[np.ndarray, float, bool, dict]:
+    def step(
+        self, sched_decision: np.ndarray
+    ) -> Tuple[Union[np.ndarray, dict], float, bool, dict]:
         """
         sched_decisions is a matrix with dimensions BxNxM where B represents
         the number of basestations, N represents the maximum number of UEs
@@ -161,7 +163,7 @@ class CommunicationEnv(gym.Env):
             {},
         )
 
-    def reset(self, initial_episode: int = -1) -> Any:
+    def reset(self, initial_episode: int = -1) -> Union[np.ndarray, dict]:
         if (
             (self.step_number == 0 and self.episode_number == 1)
             or (self.episode_number == self.max_number_episodes)
@@ -205,7 +207,7 @@ class CommunicationEnv(gym.Env):
         return 0
 
     @staticmethod
-    def obs_space_format_default(obs_space: dict) -> Any:
+    def obs_space_format_default(obs_space: dict) -> Union[np.ndarray, dict]:
         return np.array(list(obs_space.items()), dtype=object)
 
     def check_env_agent(
