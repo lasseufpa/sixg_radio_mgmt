@@ -7,10 +7,38 @@ import numpy as np
 
 
 class Metrics:
+    """
+    Metrics class to save/load metrics from simulations.
+
+    ...
+
+    Attributes
+    ----------
+    root_path : str
+        Root path to save/load simulations
+    metrics_hist : dict
+        Variable to save/load simulations metric values
+
+    Methods
+    -------
+    step(self, hist: dict)
+        Append metric values to the metrics_hist variable
+    save(self, simu_name: str, episode_number: int)
+        Save metric values obtained over a simulation to an external file
+    read(root_path: str, simu_name: str, episode_number: int)
+        Read external files containing metrics from previous simulations
+    """
+
     def __init__(
         self,
         root_path: str,
     ) -> None:
+        """
+        Parameters
+        ----------
+        root_path : str
+            Root path to save/load simulations
+        """
         self.root_path = root_path
         self.metrics_hist = {
             "pkt_incoming": [],
@@ -30,10 +58,27 @@ class Metrics:
         }
 
     def step(self, hist: dict) -> None:
+        """Append metric values to local variable metrics_hist
+
+        Parameters
+        ----------
+        hist : dict
+            Metric values obtained in the last simulation step
+        """
         for metric in hist.keys():
             self.metrics_hist[metric].append(hist[metric])
 
     def save(self, simu_name: str, episode_number: int) -> None:
+        """Save collected metric values to an external file
+
+        Parameters
+        ----------
+        simu_name : str
+            Simulation name to compose the directory name to save results
+        episode_number: int
+            Episode number being evaluated in the simulation to compose
+            external file name
+        """
         path = ("{}/hist/{}/").format(
             self.root_path,
             simu_name,
@@ -47,6 +92,24 @@ class Metrics:
 
     @staticmethod
     def read(root_path: str, simu_name: str, episode_number: int) -> Dict:
+        """Read external file containing metric results to a dict.
+
+        Parameters
+        ----------
+        root_path : str
+            Root path to save/load simulations
+        simu_name : str
+            Simulation name to compose the directory name to save results
+        episode_number: int
+            Episode number being evaluated in the simulation to compose
+            external file name
+
+        Returns
+        -------
+        dict
+            Dictionary containing all the metric values for the requested
+            simulation and episode number
+        """
         path = "{}/hist/{}/ep_{}.npz".format(root_path, simu_name, episode_number)
         data = np.load(path, allow_pickle=True)
         data_dict = {

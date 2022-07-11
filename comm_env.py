@@ -8,6 +8,62 @@ from comm import Basestations, Channel, Metrics, Mobility, Slices, Traffic, UEs
 
 
 class CommunicationEnv(gym.Env):
+    """
+    Communication environment class using Gym
+
+    ...
+
+    Attributes
+    ----------
+    variables from config file in env_config/
+        Variables characterizing the simulation scenario with information
+        for basestations, slices and UEs
+    mobility_size : int
+        Considers a 2D UE's movement (axis X and Y)
+    debug : bool
+        If debug is enabled it performs scheduling and other functions
+        input/outputs verification. it should disabled in case you want
+        to increase performance (decrease simulation time)
+    obs_space_format : Optional[Callable[[dict], Union[np.ndarray, dict]]]
+        Function defined by the scheduling agent to format the observation space
+    calculate_reward : Optional[Callable[[dict], float]]
+        Function defined by the scheduling agent to calculate the reward
+    action_format : Callable[[np.ndarray, int, int, np.ndarray], np.ndarray]
+        Function defined by the scheduling agent to format actions output
+    ChannelClass : Type[Channel]
+        Channel class defined in channels/ to be used in the simulation
+    TrafficClass : Type[Traffic]
+        Traffic class defined in traffics/ to be used in the simulation
+    MobilityClass : Type[Mobility]
+        Mobility class defined in mobilities/ to be used in the simulation
+    observation_space : Optional[Callable]
+        Function defined by the agent with the observation space using Gym spaces
+    action_space: Optional[Callable]
+        Function defined by the agent with the action space using Gym spaces
+
+    Methods
+    -------
+    step(self, sched_decision: np.ndarray)
+        Perform one time step in the Gym environment, performing the buffer
+        dynamics for each UE, basestation and slice
+    reset(self, initial_episode: int = -1)
+        Reset the environment when the episode ends
+    calculate_reward_default(obs_space: dict)
+        Default reward calculation in case the scheduling agent does not
+        define it
+    obs_space_format_default(obs_space: dict)
+        Default observation space formatter in case the scheduling agent
+        does not define it
+    check_env_agent( self, sched_decision: np.ndarray,
+    spectral_efficiencies: np.ndarray, mobilities: np.ndarray,
+    traffics: np.ndarray)
+        Perform environment and agents verifications to check if everything
+        is working as expected (actived with self.debug=True)
+    create_scenario(self)
+        Create UEs, slices and basestations in accordance with the config
+        file used (in env_config/)
+    """
+
     metadata = {"render.modes": ["human"]}
 
     def __init__(
@@ -23,7 +79,36 @@ class CommunicationEnv(gym.Env):
         action_space: Optional[Callable] = None,
         debug: bool = True,
     ) -> None:
+        """initializing the environment.
 
+        Reading config file information and creating channels, mobilities,
+        traffics, UEs, basestations and slices.
+
+        Parameters
+        ----------
+        ChannelClass : Type[Channel]
+            Channel class defined in channels/ to be used in the simulation
+        TrafficClass : Type[Traffic]
+            Traffic class defined in traffics/ to be used in the simulation
+        MobilityClass : Type[Mobility]
+            Mobility class defined in mobilities/ to be used in the simulation
+        config_file : str
+            Config file name in env_config/, e.g., "simple"
+        action_format : Callable[[np.ndarray, int, int, np.ndarray], np.ndarray]
+            Function defined by the scheduling agent to format actions output
+        obs_space_format : Optional[Callable[[dict], Union[np.ndarray, dict]]]
+            Function defined by the scheduling agent to format the observation space
+        calculate_reward : Optional[Callable[[dict], float]]
+            Function defined by the scheduling agent to calculate the reward
+        observation_space : Optional[Callable]
+            Function defined by the agent with the observation space using Gym spaces
+        action_space: Optional[Callable]
+            Function defined by the agent with the action space using Gym spaces
+        debug : bool
+            If debug is enabled it performs scheduling and other functions
+            input/outputs verification. it should disabled in case you want
+            to increase performance (decrease simulation time)
+        """
         with open("./env_config/{}.yml".format(config_file)) as file:
             data = yaml.safe_load(file)
 
@@ -87,7 +172,8 @@ class CommunicationEnv(gym.Env):
     def step(
         self, sched_decision: np.ndarray
     ) -> Tuple[Union[np.ndarray, dict], float, bool, dict]:
-        """
+        """Apply the sched_decision obtained from agent in the environment.
+
         sched_decisions is a matrix with dimensions BxNxM where B represents
         the number of basestations, N represents the maximum number of UEs
         and M the maximum number of RBs. For instance
@@ -96,6 +182,20 @@ class CommunicationEnv(gym.Env):
         received the RB 3. For basestation 2, the UE 1 received the RB 3, and
         UE 2 got RBs 1 and 2. Remember that N and M value varies in according
         to the basestation configuration.
+
+        Parameters
+        ----------
+        sched_decision : np.ndarray
+            An array containing all radio resouces allocation for each UE
+            in all basestations in the format BxUxR, where B is the number
+            of basestations, U is the number of UEs, and R is the number
+            of resource blocks available in the evaluated basestation.
+
+        Returns
+        -------
+        Tuple[Union[np.ndarray, dict], float, bool, dict]
+            Tuple containing observation space, reward, end of episode
+            bool and human info.
         """
 
         sched_decision = self.action_format(
@@ -122,7 +222,7 @@ class CommunicationEnv(gym.Env):
             sched_decision,
             traffics,
             spectral_efficiencies,
-            self.bandwidths,
+            self.basestations.bandwidths,
             self.num_available_rbs,
         )
         step_hist.update(
@@ -164,6 +264,24 @@ class CommunicationEnv(gym.Env):
         )
 
     def reset(self, initial_episode: int = -1) -> Union[np.ndarray, dict]:
+        """Reset the environment.
+
+        in case initial_episode is different from -1, it sets the
+        evaluated episode to initial_episode value. It creates a
+        scenario again with basestations, slices and UEs.
+
+        Parameters
+        ----------
+        initial_episode : int
+            in case it is different from -1, it sets the evaluated episode
+            to initial_episode. It is useful in the test processing to
+            define in which episode the test should begins
+
+        Returns
+        -------
+        Union[np.ndarray, dict]
+            Tuple containing observation space after reset the environment
+        """
         if (
             (self.step_number == 0 and self.episode_number == 1)
             or (self.episode_number == self.max_number_episodes)
@@ -204,10 +322,35 @@ class CommunicationEnv(gym.Env):
 
     @staticmethod
     def calculate_reward_default(obs_space: dict) -> float:
+        """Default function to calculate reward in case the agent does not define it.
+
+        Parameters
+        ----------
+        obs_space : dict
+            Dictionary with information from environment in the step
+
+        Returns
+        -------
+        float
+            Default reward value
+        """
         return 0
 
     @staticmethod
     def obs_space_format_default(obs_space: dict) -> Union[np.ndarray, dict]:
+        """Default function to format the observation space in case the
+        agent does not define it.
+
+        Parameters
+        ----------
+        obs_space : dict
+            Dictionary with information from environment in the step
+
+        Returns
+        -------
+        Union[np.ndarray, dict]
+            Default observation space format
+        """
         return np.array(list(obs_space.items()), dtype=object)
 
     def check_env_agent(
@@ -217,6 +360,29 @@ class CommunicationEnv(gym.Env):
         mobilities: np.ndarray,
         traffics: np.ndarray,
     ) -> None:
+        """Perform environment and agents verifications to check if everything
+        is working as expected (actived with self.debug=True)
+
+        Parameters
+        ----------
+        sched_decision : np.ndarray
+            An array containing all radio resouces allocation for each UE
+            in all basestations in the format BxUxR, where B is the number
+            of basestations, U is the number of UEs, and R is the number
+            of resource blocks available in the evaluated basestation.
+        spectral_efficiences : np.ndarray
+            An array with the same size of sched_decision containing the
+            spectral efficiences values of each pair of UE-Resource block
+            in the evaluated basestation
+        mobilities: np.ndarray
+            Numpy array containing the positions of the UEs in the system
+            with shape Ux2, where U represents the maximum number of UEs
+            in the system and 2 represents a 2D coordinate of the UE in
+            the scenario
+        traffics : np.ndarray
+            Array containing throughput traffic for each UE (receive packets
+            in the buffer)
+        """
         # Scheduling decision check
         assert len(sched_decision) == self.max_number_basestations and isinstance(
             sched_decision, np.ndarray
@@ -251,6 +417,9 @@ class CommunicationEnv(gym.Env):
         ), "Traffics values are not numpy arrays or have wrong shape."
 
     def create_scenario(self) -> None:
+        """Create a new scenario with basestation, slices and UEs in
+        accordance with initial values.
+        """
         self.ues = UEs(
             self.max_number_ues,
             self.max_buffer_latencies,

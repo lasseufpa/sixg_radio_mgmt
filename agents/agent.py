@@ -42,6 +42,16 @@ class Agent(ABC):
         max_number_basestations: int,
         num_available_rbs: np.ndarray,
     ) -> None:
+        """
+        Parameters
+        ----------
+        max_number_ues : int
+            Maximum number of UEs in the simulation
+        max_number_basestations : int
+            Maximum number of basestations in the simulation
+        num_available_rbs : np.ndarray
+            Number of radio resource blocks available per basestation
+        """
         self.max_number_ues = max_number_ues
         self.max_number_basestations = max_number_basestations
         self.num_available_rbs = num_available_rbs
