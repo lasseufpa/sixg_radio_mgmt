@@ -72,7 +72,8 @@ class CommunicationEnv(gym.Env):
         TrafficClass: Type[Traffic],
         MobilityClass: Type[Mobility],
         config_file: str,
-        action_format: Callable[[np.ndarray, int, int, np.ndarray], np.ndarray],
+        rng: np.random.Generator = np.random.default_rng(),
+        action_format: Optional[Callable[[np.ndarray], np.ndarray]] = None,
         obs_space_format: Optional[Callable[[dict], Union[np.ndarray, dict]]] = None,
         calculate_reward: Optional[Callable[[dict], float]] = None,
         obs_space: Optional[Callable] = None,
@@ -127,6 +128,7 @@ class CommunicationEnv(gym.Env):
 
         self.max_number_slices = data["slices"]["max_number_slices"]
         self.init_slice_ue_assoc = np.array(data["slices"]["slice_ue_assoc"])
+        self.slice_req = data["slices"]["slice_req"]
 
         self.max_number_ues = data["ues"]["max_number_ues"]
         self.max_buffer_latencies = np.array(data["ues"]["max_buffer_latencies"])
@@ -146,6 +148,7 @@ class CommunicationEnv(gym.Env):
         self.associations = data["associations"]
         self.mobility_size = 2  # X and Y axis
         self.debug = debug
+        self.rng = rng
 
         self.obs_space_format = (
             obs_space_format
@@ -157,7 +160,9 @@ class CommunicationEnv(gym.Env):
             if calculate_reward is not None
             else self.calculate_reward_default
         )
-        self.action_format = action_format
+        self.action_format = (
+            action_format if action_format is not None else self.action_format_default
+        )
         self.ChannelClass = ChannelClass
         self.TrafficClass = TrafficClass
         self.MobilityClass = MobilityClass
@@ -198,12 +203,7 @@ class CommunicationEnv(gym.Env):
             bool and human info.
         """
 
-        sched_decision = self.action_format(
-            sched_decision,
-            self.max_number_ues,
-            self.max_number_basestations,
-            self.num_available_rbs,
-        )
+        sched_decision = self.action_format(sched_decision)
 
         mobilities = self.mobility.step(self.step_number, self.episode_number)
         spectral_efficiencies = self.channel.step(
@@ -320,6 +320,22 @@ class CommunicationEnv(gym.Env):
 
         return self.obs_space_format(obs)
 
+    def set_agent_functions(
+        self,
+        obs_space_format: Optional[Callable[[dict], Union[np.ndarray, dict]]] = None,
+        action_format: Optional[Callable[[np.ndarray], np.ndarray]] = None,
+        calculate_reward: Optional[Callable[[dict], float]] = None,
+    ):
+        self.obs_space_format = (
+            obs_space_format if obs_space_format is not None else self.obs_space_format
+        )
+        self.calculate_reward = (
+            calculate_reward if calculate_reward is not None else self.calculate_reward
+        )
+        self.action_format = (
+            action_format if action_format is not None else self.action_format
+        )
+
     @staticmethod
     def calculate_reward_default(obs_space: dict) -> float:
         """Default function to calculate reward in case the agent does not define it.
@@ -335,6 +351,10 @@ class CommunicationEnv(gym.Env):
             Default reward value
         """
         return 0
+
+    @staticmethod
+    def action_format_default(action: np.ndarray) -> np.ndarray:
+        return action
 
     @staticmethod
     def obs_space_format_default(obs_space: dict) -> Union[np.ndarray, dict]:
@@ -427,7 +447,10 @@ class CommunicationEnv(gym.Env):
             self.pkt_sizes,
         )
         self.slices = Slices(
-            self.max_number_slices, self.max_number_ues, self.init_slice_ue_assoc
+            self.max_number_slices,
+            self.max_number_ues,
+            self.init_slice_ue_assoc,
+            self.slice_req,
         )
         self.basestations = Basestations(
             self.max_number_basestations,
@@ -438,11 +461,12 @@ class CommunicationEnv(gym.Env):
             self.carrier_frequencies,
             self.num_available_rbs,
         )
-        self.mobility = self.MobilityClass(self.max_number_ues)
+        self.mobility = self.MobilityClass(self.max_number_ues, rng=self.rng)
         self.channel = self.ChannelClass(
             self.max_number_ues,
             self.max_number_basestations,
             self.num_available_rbs,
+            rng=self.rng,
         )
-        self.traffic = self.TrafficClass(self.max_number_ues)
+        self.traffic = self.TrafficClass(self.max_number_ues, rng=self.rng)
         self.metrics_hist = Metrics(self.hist_root_path)

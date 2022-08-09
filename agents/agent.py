@@ -3,6 +3,8 @@ from typing import Union
 
 import numpy as np
 
+from comm_env import CommunicationEnv
+
 
 class Agent(ABC):
     """
@@ -38,9 +40,11 @@ class Agent(ABC):
 
     def __init__(
         self,
+        env: CommunicationEnv,
         max_number_ues: int,
         max_number_basestations: int,
         num_available_rbs: np.ndarray,
+        seed: int = np.random.randint(1000),
     ) -> None:
         """
         Parameters
@@ -52,9 +56,11 @@ class Agent(ABC):
         num_available_rbs : np.ndarray
             Number of radio resource blocks available per basestation
         """
+        self.env = env
         self.max_number_ues = max_number_ues
         self.max_number_basestations = max_number_basestations
         self.num_available_rbs = num_available_rbs
+        self.seed = seed
 
     @abstractmethod
     def step(self, obs_space: Union[np.ndarray, dict]) -> np.ndarray:
@@ -77,9 +83,8 @@ class Agent(ABC):
         """
         pass
 
-    @staticmethod
     @abstractmethod
-    def obs_space_format(obs_space: dict) -> Union[np.ndarray, dict]:
+    def obs_space_format(self, obs_space: dict) -> Union[np.ndarray, dict]:
         """Format the obsevation space to the agent's step function
 
         Format the observation space variable in a form to be recognized
@@ -100,9 +105,8 @@ class Agent(ABC):
         """
         pass
 
-    @staticmethod
     @abstractmethod
-    def calculate_reward(obs_space: dict) -> float:
+    def calculate_reward(self, obs_space: dict) -> float:
         """Calculate the reward
 
         Based on the observation space calculates the reward value.
@@ -120,12 +124,10 @@ class Agent(ABC):
         """
         pass
 
-    @staticmethod
+    @abstractmethod
     def action_format(
+        self,
         action: np.ndarray,
-        max_number_ues: int,
-        max_number_basestations: int,
-        num_available_rbs: np.ndarray,
     ) -> np.ndarray:
         """Format action variable
 

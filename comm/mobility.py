@@ -20,7 +20,9 @@ class Mobility(ABC):
         Generate 2D positions for each UE in the simulation
     """
 
-    def __init__(self, max_number_ues: int) -> None:
+    def __init__(
+        self, max_number_ues: int, rng: np.random.Generator = np.random.default_rng()
+    ) -> None:
         """
         Parameters
         ----------
@@ -28,6 +30,7 @@ class Mobility(ABC):
             Maximum number of UEs in the simulation
         """
         self.max_number_ues = max_number_ues
+        self.rng = rng
 
     @abstractmethod
     def step(self, step_number: int, episode_number: int) -> np.ndarray:

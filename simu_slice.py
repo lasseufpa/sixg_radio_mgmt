@@ -7,16 +7,23 @@ from comm_env import CommunicationEnv
 from mobilities.simple import SimpleMobility
 from traffics.simple import SimpleTraffic
 
-round_robin = RoundRobin(3, 2, np.array([8, 8]))
+seed = 10
+rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
 comm_env = CommunicationEnv(
     SimpleChannel,
     SimpleTraffic,
     SimpleMobility,
     "simple_slice",
-    round_robin.action_format,
+    rng=rng,
+)
+
+round_robin = RoundRobin(comm_env, 3, 2, np.array([8, 8]))
+comm_env.set_agent_functions(
     round_robin.obs_space_format,
+    round_robin.action_format,
     round_robin.calculate_reward,
 )
+
 obs = comm_env.reset()
 number_steps = 10
 for step_number in tqdm(np.arange(comm_env.max_number_steps)):

@@ -9,8 +9,11 @@ class SimpleChannel(Channel):
         max_number_ues: int,
         max_number_basestations: int,
         num_available_rbs: np.ndarray,
+        rng: np.random.Generator = np.random.default_rng(),
     ) -> None:
-        super().__init__(max_number_ues, max_number_basestations, num_available_rbs)
+        super().__init__(
+            max_number_ues, max_number_basestations, num_available_rbs, rng
+        )
 
     def step(
         self, step_number: int, episode_number: int, mobilities: np.ndarray

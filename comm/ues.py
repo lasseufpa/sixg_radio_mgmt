@@ -201,10 +201,16 @@ class UEs:
         return {
             "pkt_incoming": pkt_incomings,
             "pkt_throughputs": pkt_throughputs,
-            "pkt_effective_thr": [buffer.sent_packets for buffer in self.buffers],
-            "buffer_occupancies": [
-                buffer.get_buffer_occupancy() for buffer in self.buffers
-            ],
-            "buffer_latencies": [buffer.get_avg_delay() for buffer in self.buffers],
-            "dropped_pkts": [buffer.dropped_packets for buffer in self.buffers],
+            "pkt_effective_thr": np.array(
+                [buffer.sent_packets for buffer in self.buffers]
+            ),
+            "buffer_occupancies": np.array(
+                [buffer.get_buffer_occupancy() for buffer in self.buffers]
+            ),
+            "buffer_latencies": np.array(
+                [buffer.get_avg_delay() for buffer in self.buffers]
+            ),
+            "dropped_pkts": np.array(
+                [buffer.dropped_packets for buffer in self.buffers]
+            ),
         }

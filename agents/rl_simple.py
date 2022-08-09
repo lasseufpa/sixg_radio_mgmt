@@ -11,20 +11,22 @@ from comm_env import CommunicationEnv
 class RLSimple(Agent):
     def __init__(
         self,
+        env: CommunicationEnv,
         max_number_ues: int,
         max_number_basestations: int,
         num_available_rbs: np.ndarray,
-        env: CommunicationEnv,
         hyperparameters: dict = {},
-        seed: int = 0,
+        seed: int = np.random.randint(1000),
     ) -> None:
-        super().__init__(max_number_ues, max_number_basestations, num_available_rbs)
+        super().__init__(
+            env, max_number_ues, max_number_basestations, num_available_rbs, seed
+        )
         self.agent = SAC(
             "MlpPolicy",
             env,
             verbose=0,
             tensorboard_log="./tensorboard-logs/",
-            seed=seed,
+            seed=self.seed,
         )
 
     def step(self, obs_space: Union[np.ndarray, dict]) -> np.ndarray:
@@ -79,9 +81,6 @@ class RLSimple(Agent):
     @staticmethod
     def action_format(
         action: np.ndarray,
-        max_number_ues: int,
-        max_number_basestations: int,
-        num_available_rbs: np.ndarray,
     ) -> np.ndarray:
         action = np.reshape(action, (2, 2, 2))
         sched_decision = np.copy(action)

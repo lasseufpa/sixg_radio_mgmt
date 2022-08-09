@@ -8,19 +8,22 @@ from comm_env import CommunicationEnv
 from mobilities.simple import SimpleMobility
 from traffics.simple import SimpleTraffic
 
+seed = 10
+rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
 comm_env = CommunicationEnv(
     SimpleChannel,
     SimpleTraffic,
     SimpleMobility,
     "simple",
-    RLSimple.action_format,
-    RLSimple.obs_space_format,
-    RLSimple.calculate_reward,
-    RLSimple.get_obs_space,
-    RLSimple.get_action_space,
+    rng=rng,
+    obs_space=RLSimple.get_obs_space,
+    action_space=RLSimple.get_action_space,
+)
+rl_agent = RLSimple(comm_env, 2, 2, np.array([2, 2]), seed=seed)
+comm_env.set_agent_functions(
+    rl_agent.obs_space_format, rl_agent.action_format, rl_agent.calculate_reward
 )
 check_env(comm_env)
-rl_agent = RLSimple(2, 2, np.array([2, 2]), comm_env)
 total_number_steps = 10000
 rl_agent.train(total_number_steps)
 
