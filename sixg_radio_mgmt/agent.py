@@ -3,7 +3,7 @@ from typing import Union
 
 import numpy as np
 
-from comm_env import CommunicationEnv
+from .comm_env import CommunicationEnv
 
 
 class Agent(ABC):

@@ -12,8 +12,6 @@ numpy = "*"
 gym = "*"
 tqdm = "*"
 matplotlib = "*"
-stable-baselines3 = "*"
-tensorboard = "*"
 click = "==8.0.4"
 pyright = "*"
 

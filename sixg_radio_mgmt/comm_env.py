@@ -4,7 +4,13 @@ import gym
 import numpy as np
 import yaml
 
-from comm import Basestations, Channel, Metrics, Mobility, Slices, Traffic, UEs
+from .basestations import Basestations
+from .channel import Channel
+from .metrics import Metrics
+from .mobility import Mobility
+from .slices import Slices
+from .traffic import Traffic
+from .ues import UEs
 
 
 class CommunicationEnv(gym.Env):

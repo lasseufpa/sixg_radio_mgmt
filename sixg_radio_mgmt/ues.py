@@ -1,6 +1,6 @@
 import numpy as np
 
-from comm import Buffer
+from .buffer import Buffer
 
 
 class UEs:
