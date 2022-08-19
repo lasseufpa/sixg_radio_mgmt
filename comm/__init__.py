@@ -1,3 +1,4 @@
+from .agent import Agent
 from .basestations import Basestations
 from .buffer import Buffer
 from .channel import Channel

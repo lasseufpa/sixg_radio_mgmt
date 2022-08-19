@@ -4,7 +4,7 @@ import numpy as np
 from gym import spaces
 from stable_baselines3.sac.sac import SAC
 
-from agents.agent import Agent
+from comm import Agent
 from comm_env import CommunicationEnv
 
 

@@ -2,7 +2,7 @@ from typing import Union
 
 import numpy as np
 
-from agents.agent import Agent
+from comm import Agent
 from comm_env import CommunicationEnv
 
 
