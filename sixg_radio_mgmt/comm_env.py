@@ -185,6 +185,20 @@ class CommunicationEnv(gym.Env):
             self.action_space = action_space()
 
         self.create_scenario()
+        # Update associations
+        (
+            self.basestations.ue_assoc,
+            self.basestations.slice_assoc,
+            self.slices.ue_assoc,
+            self.slices.requirements,
+        ) = self.associations.step(
+            self.basestations.ue_assoc,
+            self.basestations.slice_assoc,
+            self.slices.ue_assoc,
+            self.slices.requirements,
+            self.step_number,
+            self.episode_number,
+        )
 
     def step(
         self, sched_decision: np.ndarray
