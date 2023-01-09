@@ -4,6 +4,7 @@ import gym
 import numpy as np
 import yaml
 
+from .association import Association
 from .basestations import Basestations
 from .channel import Channel
 from .metrics import Metrics
@@ -11,7 +12,6 @@ from .mobility import Mobility
 from .slices import Slices
 from .traffic import Traffic
 from .ues import UEs
-from .association import Association
 
 
 class CommunicationEnv(gym.Env):
