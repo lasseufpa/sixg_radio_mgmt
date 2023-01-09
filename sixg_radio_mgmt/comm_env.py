@@ -11,6 +11,7 @@ from .mobility import Mobility
 from .slices import Slices
 from .traffic import Traffic
 from .ues import UEs
+from .association import Association
 
 
 class CommunicationEnv(gym.Env):
@@ -42,6 +43,8 @@ class CommunicationEnv(gym.Env):
         Traffic class defined in traffics/ to be used in the simulation
     MobilityClass : Type[Mobility]
         Mobility class defined in mobilities/ to be used in the simulation
+    AssociationClass: Type[Association]
+        Association class defined in associations/ to be used in the simulation
     observation_space : Optional[Callable]
         Function defined by the agent with the observation space using Gym spaces
     action_space: Optional[Callable]
@@ -77,6 +80,7 @@ class CommunicationEnv(gym.Env):
         ChannelClass: Type[Channel],
         TrafficClass: Type[Traffic],
         MobilityClass: Type[Mobility],
+        AssociationClass: Type[Association],
         config_file: str,
         rng: np.random.Generator = np.random.default_rng(),
         action_format: Optional[Callable[[np.ndarray], np.ndarray]] = None,
@@ -99,6 +103,8 @@ class CommunicationEnv(gym.Env):
             Traffic class defined in traffics/ to be used in the simulation
         MobilityClass : Type[Mobility]
             Mobility class defined in mobilities/ to be used in the simulation
+        AssociationClass: Type[Association]
+            Association class defined in associations/ to be used in the simulation
         config_file : str
             Config file name in env_config/, e.g., "simple"
         action_format : Callable[[np.ndarray, int, int, np.ndarray], np.ndarray]
@@ -151,7 +157,6 @@ class CommunicationEnv(gym.Env):
         ]  # Maximum number of simulated episodes
         self.hist_root_path = data["simulation"]["hist_root_path"]
         self.simu_name = data["simulation"]["simu_name"]
-        self.associations = data["associations"]
         self.mobility_size = 2  # X and Y axis
         self.debug = debug
         self.rng = rng
@@ -172,6 +177,7 @@ class CommunicationEnv(gym.Env):
         self.ChannelClass = ChannelClass
         self.TrafficClass = TrafficClass
         self.MobilityClass = MobilityClass
+        self.AssociationClass = AssociationClass
 
         if obs_space is not None:
             self.observation_space = obs_space()
@@ -249,18 +255,23 @@ class CommunicationEnv(gym.Env):
         step_hist.update({"reward": reward})
         self.metrics_hist.step(step_hist)
 
-        if self.step_number in self.associations["timeline"]:
-            idx_timeline = np.equal(
-                self.step_number, self.associations["timeline"]
-            ).nonzero()[0][0]
-            self.slices.update_assoc(self.associations["slice_ue_assoc"][idx_timeline])
-            self.basestations.update_assoc(
-                slice_assoc=self.associations["basestation_slice_assoc"][idx_timeline],
-                ue_assoc=self.associations["basestation_ue_assoc"][idx_timeline],
-            )
-
         if self.step_number == self.max_number_steps:
             self.metrics_hist.save(self.simu_name, self.episode_number)
+
+        # Update associations
+        (
+            self.basestations.ue_assoc,
+            self.basestations.slice_assoc,
+            self.slices.ue_assoc,
+            self.slices.requirements,
+        ) = self.associations.step(
+            self.basestations.ue_assoc,
+            self.basestations.slice_assoc,
+            self.slices.ue_assoc,
+            self.slices.requirements,
+            self.step_number,
+            self.episode_number,
+        )
 
         return (
             obs,
@@ -475,4 +486,10 @@ class CommunicationEnv(gym.Env):
             rng=self.rng,
         )
         self.traffic = self.TrafficClass(self.max_number_ues, rng=self.rng)
+        self.associations = self.AssociationClass(
+            self.max_number_ues,
+            self.max_number_basestations,
+            self.max_number_slices,
+            self.rng,
+        )
         self.metrics_hist = Metrics(self.hist_root_path)
