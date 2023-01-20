@@ -21,7 +21,9 @@ class Traffic(ABC):
     """
 
     def __init__(
-        self, max_number_ues: int, rng: np.random.Generator = np.random.default_rng()
+        self,
+        max_number_ues: int,
+        rng: np.random.Generator = np.random.default_rng(),
     ) -> None:
         """
         Parameters
@@ -33,7 +35,13 @@ class Traffic(ABC):
         self.rng = rng
 
     @abstractmethod
-    def step(self, step_number: int, episode_number: int) -> np.ndarray:
+    def step(
+        self,
+        slice_ue_assoc: np.ndarray,
+        slice_req: dict,
+        step_number: int,
+        episode_number: int,
+    ) -> np.ndarray:
         """Generate UEs traffic in the simulation.
 
         Parameters

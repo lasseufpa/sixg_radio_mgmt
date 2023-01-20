@@ -38,6 +38,8 @@ class Association(ABC):
         """
         Parameters
         ----------
+        ues: UEs
+            UE class containing all UEs
         max_number_ues : int
             Maximum number of UEs in the simulation
         max_number_basestations : int
@@ -57,10 +59,10 @@ class Association(ABC):
         basestation_ue_assoc: np.ndarray,
         basestation_slice_assoc: np.ndarray,
         slice_ue_assoc: np.ndarray,
-        slice_req: Optional[dict],
+        slice_req: dict,
         step_number: int,
         episode_number: int,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, Optional[dict]]:
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
         """Update Basestations, Slices and UEs associations
 
         Parameters

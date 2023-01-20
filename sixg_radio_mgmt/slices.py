@@ -37,7 +37,7 @@ class Slices:
         max_number_slices: int,
         max_number_ues: int,
         ue_assoc: np.ndarray,
-        requirements: Optional[dict] = None,
+        requirements: dict = {},
     ) -> None:
         """
         Parameters

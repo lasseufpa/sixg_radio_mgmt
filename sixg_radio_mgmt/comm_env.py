@@ -235,7 +235,12 @@ class CommunicationEnv(gym.Env):
         spectral_efficiencies = self.channel.step(
             self.step_number, self.episode_number, mobilities
         )
-        traffics = self.traffic.step(self.step_number, self.episode_number)
+        traffics = self.traffic.step(
+            self.slices.ue_assoc,
+            self.slices.requirements,
+            self.step_number,
+            self.episode_number,
+        )
 
         if self.debug:
             self.check_env_agent(
@@ -340,7 +345,12 @@ class CommunicationEnv(gym.Env):
             "basestation_slice_assoc": self.basestations.slice_assoc,
             "slice_ue_assoc": self.slices.ue_assoc,
             "sched_decision": [],
-            "pkt_incoming": self.traffic.step(self.step_number, self.episode_number),
+            "pkt_incoming": self.traffic.step(
+                self.slices.ue_assoc,
+                self.slices.requirements,
+                self.step_number,
+                self.episode_number,
+            ),
             "pkt_throughputs": np.zeros(self.max_number_ues),
             "pkt_effective_thr": np.zeros(self.max_number_ues),
             "buffer_occupancies": np.zeros(self.max_number_ues),
