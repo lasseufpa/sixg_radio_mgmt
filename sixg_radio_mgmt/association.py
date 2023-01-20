@@ -3,6 +3,8 @@ from typing import Optional, Tuple
 
 import numpy as np
 
+from .ues import UEs
+
 
 class Association(ABC):
     """
@@ -27,6 +29,7 @@ class Association(ABC):
 
     def __init__(
         self,
+        ues: UEs,
         max_number_ues: int,
         max_number_basestations: int,
         max_number_slices: int,
@@ -42,6 +45,7 @@ class Association(ABC):
         max_number_slices: int
             Maximum number of supported slices
         """
+        self.ues = ues
         self.max_number_ues = max_number_ues
         self.max_number_basestations = max_number_basestations
         self.max_number_slices = max_number_slices

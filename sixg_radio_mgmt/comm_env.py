@@ -501,6 +501,7 @@ class CommunicationEnv(gym.Env):
         )
         self.traffic = self.TrafficClass(self.max_number_ues, rng=self.rng)
         self.associations = self.AssociationClass(
+            self.ues,
             self.max_number_ues,
             self.max_number_basestations,
             self.max_number_slices,

@@ -141,9 +141,9 @@ class UEs:
         self.max_buffer_latencies[ue_indexes] = max_buffer_latencies
         self.max_buffer_pkts[ue_indexes] = max_buffer_pkts
         self.pkt_sizes[ue_indexes] = pkt_sizes
-        for ue_index in ue_indexes:
+        for idx, ue_index in enumerate(ue_indexes):
             self.buffers[ue_index] = Buffer(
-                max_buffer_pkts[ue_index], max_buffer_latencies[ue_index]
+                max_buffer_pkts[idx], max_buffer_latencies[idx]
             )
 
     def step(
