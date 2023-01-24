@@ -150,7 +150,11 @@ class CommunicationEnv(gym.Env):
             if data["slices"].get("slice_ue_assoc") is not None
             else np.ones((self.max_number_slices, data["slices"]["max_number_slices"]))
         )
-        self.slice_req = data["slices"]["slice_req"]
+        self.slice_req = (
+            data["slices"]["slice_req"]
+            if data["slices"].get("slice_req") is not None
+            else {}
+        )
 
         self.max_number_ues = data["ues"]["max_number_ues"]
         self.max_buffer_latencies = np.array(data["ues"]["max_buffer_latencies"])
