@@ -157,9 +157,21 @@ class CommunicationEnv(gym.Env):
         )
 
         self.max_number_ues = data["ues"]["max_number_ues"]
-        self.max_buffer_latencies = np.array(data["ues"]["max_buffer_latencies"])
-        self.max_buffer_pkts = np.array(data["ues"]["max_buffer_pkts"])
-        self.pkt_sizes = np.array(data["ues"]["pkt_sizes"])  # In bits
+        self.max_buffer_latencies = (
+            np.array(data["ues"]["max_buffer_latencies"])
+            if data["ues"].get("max_buffer_latencies") is not None
+            else np.ones(self.max_number_ues, dtype=int) * 1000
+        )
+        self.max_buffer_pkts = (
+            np.array(data["ues"]["max_buffer_pkts"])
+            if data["ues"].get("max_buffer_pkts") is not None
+            else np.ones(self.max_number_ues) * 1024
+        )
+        self.pkt_sizes = (
+            np.array(data["ues"]["pkt_sizes"])
+            if data["ues"].get("pkt_sizes") is not None
+            else np.ones(self.max_number_ues) * 8192 * 8
+        )  # In bits
 
         self.step_number = 0  # Initial simulation step
         self.episode_number = 1  # Initial episode
