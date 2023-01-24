@@ -131,15 +131,25 @@ class CommunicationEnv(gym.Env):
             data["basestations"]["carrier_frequencies"]
         )  # In GHz
         self.num_available_rbs = np.array(data["basestations"]["num_available_rbs"])
-        self.init_basestation_ue_assoc = np.array(
-            data["basestations"]["basestation_ue_assoc"]
+        self.init_basestation_ue_assoc = (
+            np.array(data["basestations"]["basestation_ue_assoc"])
+            if data["basestations"].get("basestation_ue_assoc") is not None
+            else np.ones((self.max_number_basestations, data["ues"]["max_number_ues"]))
         )
-        self.init_basestation_slice_assoc = np.array(
-            data["basestations"]["basestation_slice_assoc"]
+        self.init_basestation_slice_assoc = (
+            np.array(data["basestations"]["basestation_slice_assoc"])
+            if data["basestations"].get("basestation_slice_assoc") is not None
+            else np.ones(
+                (self.max_number_basestations, data["slices"]["max_number_slices"])
+            )
         )
 
         self.max_number_slices = data["slices"]["max_number_slices"]
-        self.init_slice_ue_assoc = np.array(data["slices"]["slice_ue_assoc"])
+        self.init_slice_ue_assoc = (
+            np.array(data["slices"]["slice_ue_assoc"])
+            if data["slices"].get("slice_ue_assoc") is not None
+            else np.ones((self.max_number_slices, data["slices"]["max_number_slices"]))
+        )
         self.slice_req = data["slices"]["slice_req"]
 
         self.max_number_ues = data["ues"]["max_number_ues"]
