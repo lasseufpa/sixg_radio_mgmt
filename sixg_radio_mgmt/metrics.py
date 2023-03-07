@@ -88,7 +88,9 @@ class Metrics:
         except OSError:
             pass
 
-        np.savez_compressed(path + "ep_" + str(episode_number), **self.metrics_hist)
+        np.savez_compressed(
+            path + "ep_" + str(episode_number), **self.metrics_hist
+        )
 
     @staticmethod
     def read(root_path: str, simu_name: str, episode_number: int) -> Dict:
@@ -110,7 +112,9 @@ class Metrics:
             Dictionary containing all the metric values for the requested
             simulation and episode number
         """
-        path = "{}/hist/{}/ep_{}.npz".format(root_path, simu_name, episode_number)
+        path = "{}/hist/{}/ep_{}.npz".format(
+            root_path, simu_name, episode_number
+        )
         data = np.load(path, allow_pickle=True)
         data_dict = {
             "pkt_incoming": data.f.pkt_incoming,
@@ -143,19 +147,18 @@ class Plots:
         metric: str,
     ) -> None:
         w, h = matfig.figaspect(0.6)
-        fig = plt.figure(figsize=(w, h))
+        plt.figure(figsize=(w, h))
         plt.xlabel(xlabel, fontsize=14)
         plt.ylabel(ylabel, fontsize=14)
         plt.grid()
         for i, y in enumerate(np.arange(y_data.shape[1])):
             plt.plot(x_data, y_data[:, i], label=y_data_label[i])
-        fig.tight_layout()
         plt.xticks(fontsize=12)
         plt.legend(fontsize=12)
         os.makedirs("./results", exist_ok=True)
-        fig.savefig(
+        plt.savefig(
             "./results/{}_{}.pdf".format(fig_name, metric),
-            # bbox_inches="tight",
+            bbox_inches="tight",
             pad_inches=0,
             format="pdf",
             dpi=1000,
@@ -177,7 +180,10 @@ def main():
     # traffics
     for metric in metrics:
         labels = np.array(
-            ["ue {}".format(i) for i in np.arange(1, data[metric].shape[1] + 1)]
+            [
+                "ue {}".format(i)
+                for i in np.arange(1, data[metric].shape[1] + 1)
+            ]
         )
         Plots.plot(
             "Step n",

@@ -19,7 +19,7 @@ classifiers = [
 "Bug Tracker" = "https://github.com/lasseufpa/sixg_radio_mgmt/issues"
 
 [tool.black]
-line-length = 88
+line-length = 79
 include = '\.pyi?$'
 exclude = '''
 /(

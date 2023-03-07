@@ -64,7 +64,7 @@ class UEs:
         self.max_buffer_pkts = max_buffer_pkts
         self.pkt_sizes = pkt_sizes
         self.buffers = [
-            Buffer(max_buffer_pkts[i], max_buffer_latencies[i])
+            Buffer(int(max_buffer_pkts[i]), int(max_buffer_latencies[i]))
             for i in np.arange(max_number_ues)
         ]
 
@@ -189,8 +189,8 @@ class UEs:
             pkt_throughputs += self.get_pkt_throughputs(
                 sched_decision[basestation],
                 spectral_efficiencies[basestation],
-                bandwidths[basestation],
-                num_available_rbs[basestation],
+                float(bandwidths[basestation]),
+                int(num_available_rbs[basestation]),
                 self.pkt_sizes,
             )
         pkt_incomings = np.floor(traffics / self.pkt_sizes)

@@ -21,7 +21,9 @@ class Mobility(ABC):
     """
 
     def __init__(
-        self, max_number_ues: int, rng: np.random.Generator = np.random.default_rng()
+        self,
+        max_number_ues: int,
+        rng: np.random.Generator = np.random.default_rng(),
     ) -> None:
         """
         Parameters

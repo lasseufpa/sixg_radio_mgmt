@@ -46,7 +46,7 @@ class Buffer:
         max_packets_age : int
             Maximum latency that packets can wait in the buffer
         """
-        self.buffer = np.zeros(max_packet_age + 1)
+        self.buffer = np.zeros(max_packet_age + 1, dtype=int)
         self.cumulative_buffer = np.zeros(max_packet_age + 1)
         self.max_packets_buffer = max_packets_buffer
         self.max_packets_age = max_packet_age
@@ -72,7 +72,9 @@ class Buffer:
         self.dropped_packets += self.buffer[-1]
         self.buffer = np.roll(self.buffer, 1)
         self.buffer[0] = 0
-        if (np.sum(self.buffer) + num_packets_arrived) <= self.max_packets_buffer:
+        if (
+            np.sum(self.buffer) + num_packets_arrived
+        ) <= self.max_packets_buffer:
             self.buffer[0] = num_packets_arrived
         else:
             self.dropped_packets += num_packets_arrived - (
@@ -92,10 +94,12 @@ class Buffer:
             Number of packets to be sent from buffer
         """
         tmp_buffer = self.buffer.copy()
-        if (self.get_buffer_occupancy() != 0) or (packets_available_to_send != 0):
+        if (self.get_buffer_occupancy() != 0) or (
+            packets_available_to_send != 0
+        ):
             for i in np.arange(self.buffer.shape[0])[::-1]:
                 if packets_available_to_send >= self.buffer[i]:
-                    packets_available_to_send -= self.buffer[i]
+                    packets_available_to_send -= int(self.buffer[i])
                     self.buffer[i] = 0
                 else:
                     self.buffer[i] -= packets_available_to_send
@@ -122,9 +126,13 @@ class Buffer:
             Average buffer delay
         """
         if np.sum(self.cumulative_buffer) != 0:
-            return np.sum(
-                self.cumulative_buffer * np.arange(self.max_packets_age + 1)
-            ) / np.sum(self.cumulative_buffer)
+            return float(
+                np.sum(
+                    self.cumulative_buffer
+                    * np.arange(self.max_packets_age + 1)
+                )
+                / np.sum(self.cumulative_buffer)
+            )
         else:
             return 0
 

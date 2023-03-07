@@ -107,7 +107,9 @@ class Basestations:
         ue_assoc: Optional[np.ndarray]
             Optional UE association to update the existent one
         """
-        self.slice_assoc = slice_assoc if slice_assoc is not None else self.slice_assoc
+        self.slice_assoc = (
+            slice_assoc if slice_assoc is not None else self.slice_assoc
+        )
         self.ue_assoc = ue_assoc if ue_assoc is not None else self.ue_assoc
 
     def get_number_slices_per_basestation(self) -> np.ndarray:

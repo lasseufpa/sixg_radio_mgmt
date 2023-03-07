@@ -84,7 +84,9 @@ class CommunicationEnv(gym.Env):
         config_file: str,
         rng: np.random.Generator = np.random.default_rng(),
         action_format: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-        obs_space_format: Optional[Callable[[dict], Union[np.ndarray, dict]]] = None,
+        obs_space_format: Optional[
+            Callable[[dict], Union[np.ndarray, dict]]
+        ] = None,
         calculate_reward: Optional[Callable[[dict], float]] = None,
         obs_space: Optional[Callable] = None,
         action_space: Optional[Callable] = None,
@@ -125,22 +127,33 @@ class CommunicationEnv(gym.Env):
         with open("./env_config/{}.yml".format(config_file)) as file:
             data = yaml.safe_load(file)
 
-        self.max_number_basestations = data["basestations"]["max_number_basestations"]
-        self.bandwidths = np.array(data["basestations"]["bandwidths"])  # In MHz
+        self.max_number_basestations = data["basestations"][
+            "max_number_basestations"
+        ]
+        self.bandwidths = np.array(
+            data["basestations"]["bandwidths"]
+        )  # In MHz
         self.carrier_frequencies = np.array(
             data["basestations"]["carrier_frequencies"]
         )  # In GHz
-        self.num_available_rbs = np.array(data["basestations"]["num_available_rbs"])
+        self.num_available_rbs = np.array(
+            data["basestations"]["num_available_rbs"]
+        )
         self.init_basestation_ue_assoc = (
             np.array(data["basestations"]["basestation_ue_assoc"])
             if data["basestations"].get("basestation_ue_assoc") is not None
-            else np.ones((self.max_number_basestations, data["ues"]["max_number_ues"]))
+            else np.ones(
+                (self.max_number_basestations, data["ues"]["max_number_ues"])
+            )
         )
         self.init_basestation_slice_assoc = (
             np.array(data["basestations"]["basestation_slice_assoc"])
             if data["basestations"].get("basestation_slice_assoc") is not None
             else np.ones(
-                (self.max_number_basestations, data["slices"]["max_number_slices"])
+                (
+                    self.max_number_basestations,
+                    data["slices"]["max_number_slices"],
+                )
             )
         )
 
@@ -148,7 +161,9 @@ class CommunicationEnv(gym.Env):
         self.init_slice_ue_assoc = (
             np.array(data["slices"]["slice_ue_assoc"])
             if data["slices"].get("slice_ue_assoc") is not None
-            else np.ones((self.max_number_slices, data["slices"]["max_number_slices"]))
+            else np.ones(
+                (self.max_number_slices, data["slices"]["max_number_slices"])
+            )
         )
         self.slice_req = (
             data["slices"]["slice_req"]
@@ -198,7 +213,9 @@ class CommunicationEnv(gym.Env):
             else self.calculate_reward_default
         )
         self.action_format = (
-            action_format if action_format is not None else self.action_format_default
+            action_format
+            if action_format is not None
+            else self.action_format_default
         )
         self.ChannelClass = ChannelClass
         self.TrafficClass = TrafficClass
@@ -349,7 +366,9 @@ class CommunicationEnv(gym.Env):
             or (self.episode_number == self.max_number_episodes)
             or initial_episode != -1
         ):
-            self.episode_number = 1 if initial_episode == -1 else initial_episode
+            self.episode_number = (
+                1 if initial_episode == -1 else initial_episode
+            )
         elif self.episode_number < self.max_number_episodes:
             self.episode_number += 1
         else:
@@ -361,7 +380,9 @@ class CommunicationEnv(gym.Env):
         self.step_number = 0
 
         self.create_scenario()
-        initial_positions = self.mobility.step(self.step_number, self.episode_number)
+        initial_positions = self.mobility.step(
+            self.step_number, self.episode_number
+        )
         obs = {
             "mobility": initial_positions,
             "spectral_efficiencies": self.channel.step(
@@ -391,15 +412,21 @@ class CommunicationEnv(gym.Env):
 
     def set_agent_functions(
         self,
-        obs_space_format: Optional[Callable[[dict], Union[np.ndarray, dict]]] = None,
+        obs_space_format: Optional[
+            Callable[[dict], Union[np.ndarray, dict]]
+        ] = None,
         action_format: Optional[Callable[[np.ndarray], np.ndarray]] = None,
         calculate_reward: Optional[Callable[[dict], float]] = None,
     ):
         self.obs_space_format = (
-            obs_space_format if obs_space_format is not None else self.obs_space_format
+            obs_space_format
+            if obs_space_format is not None
+            else self.obs_space_format
         )
         self.calculate_reward = (
-            calculate_reward if calculate_reward is not None else self.calculate_reward
+            calculate_reward
+            if calculate_reward is not None
+            else self.calculate_reward
         )
         self.action_format = (
             action_format if action_format is not None else self.action_format
@@ -473,7 +500,9 @@ class CommunicationEnv(gym.Env):
             in the buffer)
         """
         # Scheduling decision check
-        assert len(sched_decision) == self.max_number_basestations and isinstance(
+        assert len(
+            sched_decision
+        ) == self.max_number_basestations and isinstance(
             sched_decision, np.ndarray
         ), "Sched decision shape does not match the number of basestations or is not of type list"
         for i, basestation_sched in enumerate(sched_decision):
