@@ -14,6 +14,6 @@ jobs:
           python-version: 3.7
           cache: "pipenv"
       - run: pip install pipenv
-      - run: pipenv install --skip-lock
+      - run: pipenv install
       - run: pipenv run pre-commit install
       - run: pipenv run pre-commit run --all-files
