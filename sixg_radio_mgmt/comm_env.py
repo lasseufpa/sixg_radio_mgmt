@@ -259,7 +259,7 @@ class CommunicationEnv(gym.Env):
 
         mobilities = self.mobility.step(self.step_number, self.episode_number)
         spectral_efficiencies = self.channel.step(
-            self.step_number, self.episode_number, mobilities
+            self.step_number, self.episode_number, mobilities, sched_decision
         )
         traffics = self.traffic.step(
             self.slices.ue_assoc,
@@ -365,7 +365,9 @@ class CommunicationEnv(gym.Env):
         obs = {
             "mobility": initial_positions,
             "spectral_efficiencies": self.channel.step(
-                self.step_number, self.episode_number, initial_positions
+                self.step_number,
+                self.episode_number,
+                initial_positions,
             ),
             "basestation_ue_assoc": self.basestations.ue_assoc,
             "basestation_slice_assoc": self.basestations.slice_assoc,

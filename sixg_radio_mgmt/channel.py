@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
 import numpy as np
 
@@ -51,7 +52,11 @@ class Channel(ABC):
 
     @abstractmethod
     def step(
-        self, step_number: int, episode_number: int, mobilities: np.ndarray
+        self,
+        step_number: int,
+        episode_number: int,
+        mobilities: np.ndarray,
+        sched_decision: Optional[np.ndarray] = None,
     ) -> np.ndarray:
         """Abstract function to generate channel values per UExRB.
 
@@ -66,6 +71,11 @@ class Channel(ABC):
             with shape Ux2, where U represents the maximum number of UEs
             in the system and 2 represents a 2D coordinate of the UE in
             the scenario
+        sched_decision : np.ndarray
+            An array containing all radio resouces allocation for each UE
+            in all basestations in the format BxUxR, where B is the number
+            of basestations, U is the number of UEs, and R is the number
+            of resource blocks available in the evaluated basestation.
 
         Returns
         -------
