@@ -14,8 +14,6 @@ class Buffer:
         Array representing the number of packets that waited in the buffer
         in each time step n, with maximum time step equals to the maximum
         packet latency allowed by max_packet_age variable
-    cumulative_buffer : np.ndarray
-        Auxiliary variable to calculate sent packets
     max_packets_buffer: int
         Maximum number of packets allowed in the buffer
     max_packets_age : int
@@ -47,7 +45,6 @@ class Buffer:
             Maximum latency that packets can wait in the buffer
         """
         self.buffer = np.zeros(max_packet_age + 1, dtype=int)
-        self.cumulative_buffer = np.zeros(max_packet_age + 1)
         self.max_packets_buffer = max_packets_buffer
         self.max_packets_age = max_packet_age
         self.dropped_packets = 0
@@ -104,7 +101,6 @@ class Buffer:
                 else:
                     self.buffer[i] -= packets_available_to_send
                     break
-        self.cumulative_buffer += np.subtract(tmp_buffer, self.buffer)
         self.sent_packets = np.sum(tmp_buffer) - np.sum(self.buffer)
 
     def get_buffer_occupancy(self) -> float:
@@ -125,13 +121,10 @@ class Buffer:
         float
             Average buffer delay
         """
-        if np.sum(self.cumulative_buffer) != 0:
+        if np.sum(self.buffer) != 0:
             return float(
-                np.sum(
-                    self.cumulative_buffer
-                    * np.arange(self.max_packets_age + 1)
-                )
-                / np.sum(self.cumulative_buffer)
+                np.sum(self.buffer * np.arange(self.max_packets_age + 1))
+                / np.sum(self.buffer)
             )
         else:
             return 0
@@ -153,8 +146,6 @@ def main():
         )
         ue_buffer.send_packets(sent_packets)
         print(ue_buffer.buffer, "\n")
-
-    print(ue_buffer.cumulative_buffer)
     print("UE Average delay: ", ue_buffer.get_avg_delay(), " ms")
 
 
