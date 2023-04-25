@@ -82,6 +82,7 @@ class CommunicationEnv(gym.Env):
         MobilityClass: Type[Mobility],
         AssociationClass: Type[Association],
         config_file: str,
+        agent_name: str = "agent",
         rng: np.random.Generator = np.random.default_rng(),
         action_format: Optional[Callable[[np.ndarray], np.ndarray]] = None,
         obs_space_format: Optional[
@@ -109,6 +110,8 @@ class CommunicationEnv(gym.Env):
             Association class defined in associations/ to be used in the simulation
         config_file : str
             Config file name in env_config/, e.g., "simple"
+        agent_name : str
+            Agent name to compose the directory name to save results
         action_format : Callable[[np.ndarray, int, int, np.ndarray], np.ndarray]
             Function defined by the scheduling agent to format actions output
         obs_space_format : Optional[Callable[[dict], Union[np.ndarray, dict]]]
@@ -201,6 +204,7 @@ class CommunicationEnv(gym.Env):
         self.mobility_size = 2  # X and Y axis
         self.debug = debug
         self.rng = rng
+        self.agent_name = agent_name
 
         self.obs_space_format = (
             obs_space_format
@@ -318,22 +322,24 @@ class CommunicationEnv(gym.Env):
         self.metrics_hist.step(step_hist)
 
         if self.step_number == self.max_number_steps:
-            self.metrics_hist.save(self.simu_name, self.episode_number)
-
-        # Update associations
-        (
-            self.basestations.ue_assoc,
-            self.basestations.slice_assoc,
-            self.slices.ue_assoc,
-            self.slices.requirements,
-        ) = self.associations.step(
-            self.basestations.ue_assoc,
-            self.basestations.slice_assoc,
-            self.slices.ue_assoc,
-            self.slices.requirements,
-            self.step_number,
-            self.episode_number,
-        )
+            self.metrics_hist.save(
+                self.simu_name, self.agent_name, self.episode_number
+            )
+        else:
+            # Update associations
+            (
+                self.basestations.ue_assoc,
+                self.basestations.slice_assoc,
+                self.slices.ue_assoc,
+                self.slices.requirements,
+            ) = self.associations.step(
+                self.basestations.ue_assoc,
+                self.basestations.slice_assoc,
+                self.slices.ue_assoc,
+                self.slices.requirements,
+                self.step_number,
+                self.episode_number,
+            )
 
         return (
             obs,

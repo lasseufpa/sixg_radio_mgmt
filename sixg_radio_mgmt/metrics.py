@@ -68,20 +68,25 @@ class Metrics:
         for metric in hist.keys():
             self.metrics_hist[metric].append(hist[metric])
 
-    def save(self, simu_name: str, episode_number: int) -> None:
+    def save(
+        self, simu_name: str, agent_name: str, episode_number: int
+    ) -> None:
         """Save collected metric values to an external file
 
         Parameters
         ----------
         simu_name : str
             Simulation name to compose the directory name to save results
+        agent_name : str
+            Agent name to compose the directory name to save results
         episode_number: int
             Episode number being evaluated in the simulation to compose
             external file name
         """
-        path = ("{}/hist/{}/").format(
+        path = ("{}/hist/{}/{}/").format(
             self.root_path,
             simu_name,
+            agent_name,
         )
         try:
             os.makedirs(path)
