@@ -133,6 +133,8 @@ class CommunicationEnv(gym.Env):
         self.max_number_basestations = data["basestations"][
             "max_number_basestations"
         ]
+        self.max_number_slices = data["slices"]["max_number_slices"]
+        self.max_number_ues = data["ues"]["max_number_ues"]
         self.bandwidths = np.array(
             data["basestations"]["bandwidths"]
         )  # In MHz
@@ -159,22 +161,16 @@ class CommunicationEnv(gym.Env):
                 )
             )
         )
-
-        self.max_number_slices = data["slices"]["max_number_slices"]
         self.init_slice_ue_assoc = (
             np.array(data["slices"]["slice_ue_assoc"])
             if data["slices"].get("slice_ue_assoc") is not None
-            else np.ones(
-                (self.max_number_slices, data["slices"]["max_number_slices"])
-            )
+            else np.ones((self.max_number_slices, self.max_number_ues))
         )
         self.slice_req = (
             data["slices"]["slice_req"]
             if data["slices"].get("slice_req") is not None
             else {}
         )
-
-        self.max_number_ues = data["ues"]["max_number_ues"]
         self.max_buffer_latencies = (
             np.array(data["ues"]["max_buffer_latencies"])
             if data["ues"].get("max_buffer_latencies") is not None
@@ -192,7 +188,7 @@ class CommunicationEnv(gym.Env):
         )  # In bits
 
         self.step_number = 0  # Initial simulation step
-        self.episode_number = 1  # Initial episode
+        self.episode_number = 0  # Initial episode
         self.max_number_steps = data["simulation"][
             "max_number_steps"
         ]  # Maximum number of steps per simulated episode
@@ -368,12 +364,12 @@ class CommunicationEnv(gym.Env):
             Tuple containing observation space after reset the environment
         """
         if (
-            (self.step_number == 0 and self.episode_number == 1)
+            (self.step_number == 0 and self.episode_number == 0)
             or (self.episode_number == self.max_number_episodes)
             or initial_episode != -1
         ):
             self.episode_number = (
-                1 if initial_episode == -1 else initial_episode
+                0 if initial_episode == -1 else initial_episode
             )
         elif self.episode_number < self.max_number_episodes:
             self.episode_number += 1
@@ -550,6 +546,27 @@ class CommunicationEnv(gym.Env):
             self.max_buffer_pkts,
             self.pkt_sizes,
         )
+        self.associations = self.AssociationClass(
+            self.ues,
+            self.max_number_ues,
+            self.max_number_basestations,
+            self.max_number_slices,
+            self.rng,
+        )
+        # Update associations
+        (
+            self.init_basestation_ue_assoc,
+            self.init_basestation_slice_assoc,
+            self.init_slice_ue_assoc,
+            self.slice_req,
+        ) = self.associations.step(
+            self.init_basestation_ue_assoc,
+            self.init_basestation_slice_assoc,
+            self.init_slice_ue_assoc,
+            self.slice_req,
+            self.step_number,
+            self.episode_number,
+        )
         self.slices = Slices(
             self.max_number_slices,
             self.max_number_ues,
@@ -573,11 +590,4 @@ class CommunicationEnv(gym.Env):
             rng=self.rng,
         )
         self.traffic = self.TrafficClass(self.max_number_ues, rng=self.rng)
-        self.associations = self.AssociationClass(
-            self.ues,
-            self.max_number_ues,
-            self.max_number_basestations,
-            self.max_number_slices,
-            self.rng,
-        )
         self.metrics_hist = Metrics(self.hist_root_path)
