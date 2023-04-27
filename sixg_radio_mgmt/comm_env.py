@@ -174,7 +174,7 @@ class CommunicationEnv(gym.Env):
         self.max_buffer_latencies = (
             np.array(data["ues"]["max_buffer_latencies"])
             if data["ues"].get("max_buffer_latencies") is not None
-            else np.ones(self.max_number_ues, dtype=int) * 1000
+            else np.ones(self.max_number_ues, dtype=int) * 100
         )
         self.max_buffer_pkts = (
             np.array(data["ues"]["max_buffer_pkts"])
@@ -365,13 +365,13 @@ class CommunicationEnv(gym.Env):
         """
         if (
             (self.step_number == 0 and self.episode_number == 0)
-            or (self.episode_number == self.max_number_episodes)
+            or (self.episode_number == (self.max_number_episodes - 1))
             or initial_episode != -1
         ):
             self.episode_number = (
                 0 if initial_episode == -1 else initial_episode
             )
-        elif self.episode_number < self.max_number_episodes:
+        elif self.episode_number < (self.max_number_episodes - 1):
             self.episode_number += 1
         else:
             raise Exception(
