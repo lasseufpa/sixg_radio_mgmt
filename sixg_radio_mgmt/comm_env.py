@@ -83,7 +83,6 @@ class CommunicationEnv(gym.Env):
         AssociationClass: Type[Association],
         config_file: str,
         agent_name: str = "agent",
-        rng: np.random.Generator = np.random.default_rng(),
         action_format: Optional[Callable[[np.ndarray], np.ndarray]] = None,
         obs_space_format: Optional[
             Callable[[dict], Union[np.ndarray, dict]]
@@ -127,7 +126,7 @@ class CommunicationEnv(gym.Env):
             input/outputs verification. it should disabled in case you want
             to increase performance (decrease simulation time)
         """
-        with open("./env_config/{}.yml".format(config_file)) as file:
+        with open(f"./env_config/{config_file}.yml") as file:
             data = yaml.safe_load(file)
 
         self.max_number_basestations = data["basestations"][
@@ -199,7 +198,6 @@ class CommunicationEnv(gym.Env):
         self.simu_name = data["simulation"]["simu_name"]
         self.mobility_size = 2  # X and Y axis
         self.debug = debug
-        self.rng = rng
         self.seed = 0  # Requested by Stablebaselines agent
         self.agent_name = agent_name
 
@@ -347,7 +345,9 @@ class CommunicationEnv(gym.Env):
         )
 
     def reset(
-        self, initial_episode: int = -1
+        self,
+        seed: Optional[int] = None,
+        options: dict = {"initial_episode": -1},
     ) -> Tuple[Union[dict, np.ndarray], dict]:
         """Reset the environment.
 
@@ -367,13 +367,17 @@ class CommunicationEnv(gym.Env):
         Union[np.ndarray, dict]
             Tuple containing observation space after reset the environment
         """
+        super().reset(seed=seed)
+
         if (
             (self.step_number == 0 and self.episode_number == 0)
             or (self.episode_number == (self.max_number_episodes - 1))
-            or initial_episode != -1
+            or options["initial_episode"] != -1
         ):
             self.episode_number = (
-                0 if initial_episode == -1 else initial_episode
+                0
+                if options["initial_episode"] == -1
+                else options["initial_episode"]
             )
         elif self.episode_number < (self.max_number_episodes - 1):
             self.episode_number += 1
@@ -555,7 +559,7 @@ class CommunicationEnv(gym.Env):
             self.max_number_ues,
             self.max_number_basestations,
             self.max_number_slices,
-            self.rng,
+            self.np_random,
         )
         # Update associations
         (
@@ -586,12 +590,16 @@ class CommunicationEnv(gym.Env):
             self.carrier_frequencies,
             self.num_available_rbs,
         )
-        self.mobility = self.MobilityClass(self.max_number_ues, rng=self.rng)
+        self.mobility = self.MobilityClass(
+            self.max_number_ues, rng=self.np_random
+        )
         self.channel = self.ChannelClass(
             self.max_number_ues,
             self.max_number_basestations,
             self.num_available_rbs,
-            rng=self.rng,
+            rng=self.np_random,
         )
-        self.traffic = self.TrafficClass(self.max_number_ues, rng=self.rng)
+        self.traffic = self.TrafficClass(
+            self.max_number_ues, rng=self.np_random
+        )
         self.metrics_hist = Metrics(self.hist_root_path)

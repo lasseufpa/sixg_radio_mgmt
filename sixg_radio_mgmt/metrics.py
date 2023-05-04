@@ -98,7 +98,9 @@ class Metrics:
         )
 
     @staticmethod
-    def read(root_path: str, simu_name: str, episode_number: int) -> Dict:
+    def read(
+        root_path: str, simu_name: str, agent_name: str, episode_number: int
+    ) -> Dict:
         """Read external file containing metric results to a dict.
 
         Parameters
@@ -117,8 +119,8 @@ class Metrics:
             Dictionary containing all the metric values for the requested
             simulation and episode number
         """
-        path = "{}/hist/{}/ep_{}.npz".format(
-            root_path, simu_name, episode_number
+        path = "{}hist/{}/{}/ep_{}.npz".format(
+            root_path, simu_name, agent_name, episode_number
         )
         data = np.load(path, allow_pickle=True)
         data_dict = {
@@ -172,7 +174,7 @@ class Plots:
 
 
 def main():
-    data = Metrics.read("./", "test", 1)
+    data = Metrics.read("./", "test", "agent", 0)
 
     metrics = [
         "pkt_incoming",
