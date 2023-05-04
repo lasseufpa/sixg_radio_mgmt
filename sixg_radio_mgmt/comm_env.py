@@ -1,6 +1,6 @@
 from typing import Callable, Optional, Tuple, Type, Union
 
-import gym
+import gymnasium as gym
 import numpy as np
 import yaml
 
@@ -200,6 +200,7 @@ class CommunicationEnv(gym.Env):
         self.mobility_size = 2  # X and Y axis
         self.debug = debug
         self.rng = rng
+        self.seed = 0  # Requested by Stablebaselines agent
         self.agent_name = agent_name
 
         self.obs_space_format = (
@@ -245,7 +246,7 @@ class CommunicationEnv(gym.Env):
 
     def step(
         self, sched_decision: np.ndarray
-    ) -> Tuple[Union[np.ndarray, dict], float, bool, dict]:
+    ) -> Tuple[Union[np.ndarray, dict], float, bool, bool, dict]:
         """Apply the sched_decision obtained from agent in the environment.
 
         sched_decisions is a matrix with dimensions BxNxM where B represents
@@ -341,10 +342,13 @@ class CommunicationEnv(gym.Env):
             obs,
             reward,
             self.step_number == self.max_number_steps,
+            False,  # Truncated from Gymnasium
             {},
         )
 
-    def reset(self, initial_episode: int = -1) -> Union[np.ndarray, dict]:
+    def reset(
+        self, initial_episode: int = -1
+    ) -> Tuple[Union[dict, np.ndarray], dict]:
         """Reset the environment.
 
         in case initial_episode is different from -1, it sets the
@@ -410,7 +414,7 @@ class CommunicationEnv(gym.Env):
             "slice_req": self.slices.requirements,
         }
 
-        return self.obs_space_format(obs)
+        return (self.obs_space_format(obs), {})
 
     def set_agent_functions(
         self,
