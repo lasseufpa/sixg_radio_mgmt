@@ -83,6 +83,7 @@ class CommunicationEnv(gym.Env):
         AssociationClass: Type[Association],
         config_file: str,
         agent_name: str = "agent",
+        seed: int = np.random.randint(1000),
         action_format: Optional[Callable[[np.ndarray], np.ndarray]] = None,
         obs_space_format: Optional[
             Callable[[dict], Union[np.ndarray, dict]]
@@ -198,7 +199,7 @@ class CommunicationEnv(gym.Env):
         self.simu_name = data["simulation"]["simu_name"]
         self.mobility_size = 2  # X and Y axis
         self.debug = debug
-        self.seed = 0  # Requested by Stablebaselines agent
+        self.seed = seed  # Requested by Stablebaselines agent
         self.agent_name = agent_name
 
         self.obs_space_format = (
