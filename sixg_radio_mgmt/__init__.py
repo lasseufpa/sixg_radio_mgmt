@@ -9,3 +9,4 @@ from .mobility import Mobility
 from .slices import Slices
 from .traffic import Traffic
 from .ues import UEs
+from .marl_comm_env import MARLCommEnv
