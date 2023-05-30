@@ -13,6 +13,7 @@ gymnasium = "*"
 tqdm = "*"
 matplotlib = "*"
 pyright = "==1.1.296"
+pettingzoo = "*"
 
 [dev-packages]
 
