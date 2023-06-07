@@ -106,7 +106,7 @@ class Agent(ABC):
         pass
 
     @abstractmethod
-    def calculate_reward(self, obs_space: dict) -> float:
+    def calculate_reward(self, obs_space: dict) -> Union[float, dict]:
         """Calculate the reward
 
         Based on the observation space calculates the reward value.
@@ -127,7 +127,7 @@ class Agent(ABC):
     @abstractmethod
     def action_format(
         self,
-        action: np.ndarray,
+        action: Union[np.ndarray, dict],
     ) -> np.ndarray:
         """Format action variable
 

@@ -84,7 +84,9 @@ class CommunicationEnv(gym.Env):
         config_file: str,
         agent_name: str = "agent",
         seed: int = np.random.randint(1000),
-        action_format: Optional[Callable[[np.ndarray], np.ndarray]] = None,
+        action_format: Optional[
+            Callable[[Union[np.ndarray, dict]], np.ndarray]
+        ] = None,
         obs_space_format: Optional[
             Callable[[dict], Union[np.ndarray, dict]]
         ] = None,
@@ -245,7 +247,7 @@ class CommunicationEnv(gym.Env):
 
     def step(
         self, sched_decision: np.ndarray
-    ) -> Tuple[Union[np.ndarray, dict], float, bool, bool, dict]:
+    ) -> Tuple[Union[np.ndarray, dict], Union[float, dict], bool, bool, dict]:
         """Apply the sched_decision obtained from agent in the environment.
 
         sched_decisions is a matrix with dimensions BxNxM where B represents
@@ -426,8 +428,12 @@ class CommunicationEnv(gym.Env):
         obs_space_format: Optional[
             Callable[[dict], Union[np.ndarray, dict]]
         ] = None,
-        action_format: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-        calculate_reward: Optional[Callable[[dict], float]] = None,
+        action_format: Optional[
+            Callable[[Union[np.ndarray, dict]], np.ndarray]
+        ] = None,
+        calculate_reward: Optional[
+            Callable[[dict], Union[float, dict]]
+        ] = None,
     ):
         self.obs_space_format = (
             obs_space_format
@@ -444,7 +450,7 @@ class CommunicationEnv(gym.Env):
         )
 
     @staticmethod
-    def calculate_reward_default(obs_space: dict) -> float:
+    def calculate_reward_default(obs_space: dict) -> Union[float, dict]:
         """Default function to calculate reward in case the agent does not define it.
 
         Parameters
@@ -460,8 +466,8 @@ class CommunicationEnv(gym.Env):
         return 0
 
     @staticmethod
-    def action_format_default(action: np.ndarray) -> np.ndarray:
-        return action
+    def action_format_default(action: Union[np.ndarray, dict]) -> np.ndarray:
+        return np.array(action)
 
     @staticmethod
     def obs_space_format_default(obs_space: dict) -> Union[np.ndarray, dict]:

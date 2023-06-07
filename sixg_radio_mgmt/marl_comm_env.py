@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Tuple, Type, Union
+from typing import Callable, Optional, Tuple, Type, Union, TypeVar
 
 import numpy as np
 from pettingzoo import AECEnv
@@ -30,8 +30,16 @@ class MARLCommEnv(AECEnv, CommunicationEnv):
         self.agent_name_mapping = dict(
             zip(self.possible_agents, list(range(len(self.possible_agents))))
         )
-        self.observations = {}
-        self.state = {agent: None for agent in self.agents}
+        self.agent_actions = {agent: None for agent in self.agents}
+        self.rewards = {agent: 0 for agent in self.agents}
+        self._cumulative_rewards = {agent: 0 for agent in self.agents}
+        self.terminations = {agent: False for agent in self.agents}
+        self.truncations = {agent: False for agent in self.agents}
+        self.infos = {agent: {} for agent in self.agents}
+        self.observations = {agent: None for agent in self.agents}
+        self.num_moves = 0
+        self._agent_selector = agent_selector(self.agents)
+        self.agent_selection = self._agent_selector.next()
 
     def observe(self, agent: str) -> Optional[np.ndarray]:
         return (
@@ -43,28 +51,7 @@ class MARLCommEnv(AECEnv, CommunicationEnv):
         seed: Optional[int] = None,
         options: dict = {"initial_episode": -1},
     ):
-        super().reset(seed=seed)
-
-        if (
-            (self.step_number == 0 and self.episode_number == 0)
-            or (self.episode_number == (self.max_number_episodes - 1))
-            or options["initial_episode"] != -1
-        ):
-            self.episode_number = (
-                0
-                if options["initial_episode"] == -1
-                else options["initial_episode"]
-            )
-        elif self.episode_number < (self.max_number_episodes - 1):
-            self.episode_number += 1
-        else:
-            raise Exception(
-                "Episode number received a non expected value equals to {}.".format(
-                    self.episode_number
-                )
-            )
-        self.step_number = 0
-        self.create_scenario()
+        super(CommunicationEnv, self).reset(seed=seed)
 
         # MARL variables
         self.rewards = {agent: 0 for agent in self.agents}
@@ -72,22 +59,22 @@ class MARLCommEnv(AECEnv, CommunicationEnv):
         self.terminations = {agent: False for agent in self.agents}
         self.truncations = {agent: False for agent in self.agents}
         self.infos = {agent: {} for agent in self.agents}
-        self.state = {agent: None for agent in self.agents}
+        self.agent_actions = {agent: None for agent in self.agents}
         self.observations = {agent: None for agent in self.agents}
         self.num_moves = 0
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = self._agent_selector.next()
 
-    def step(self, sched_decision):
+    def step(self, action):
         # Multi-agent specific
         agent = self.agent_selection
         self._cumulative_rewards[agent] = 0
-        self.state[self.agent_selection] = sched_decision
+        self.agent_actions[self.agent_selection] = np.array(action)
 
         # Multi-agent specific
         if self._agent_selector.is_last():
             # Single-agent specific
-            sched_decision = self.action_format(sched_decision)
+            sched_decision = self.action_format(self.agent_actions)
 
             mobilities = self.mobility.step(
                 self.step_number, self.episode_number
@@ -131,10 +118,10 @@ class MARLCommEnv(AECEnv, CommunicationEnv):
                 }
             )
             self.step_number += 1
-            obs = self.obs_space_format(step_hist)
-            reward = self.calculate_reward(step_hist)
+            self.observations = self.obs_space_format(step_hist)
+            self.rewards = self.calculate_reward(step_hist)
 
-            step_hist.update({"reward": reward})
+            step_hist.update({"reward": self.rewards})
             self.metrics_hist.step(step_hist)
 
             if self.step_number == self.max_number_steps:
@@ -157,28 +144,10 @@ class MARLCommEnv(AECEnv, CommunicationEnv):
                     self.episode_number,
                 )
             #### End single agent specific
-
-            # rewards for all agents are placed in the .rewards dictionary
-            (
-                self.rewards[self.agents[0]],
-                self.rewards[self.agents[1]],
-            ) = REWARD_MAP[
-                (self.state[self.agents[0]], self.state[self.agents[1]])
-            ]
-
-            self.num_moves += 1
-            # The truncations dictionary must be updated for all players.
-            self.truncations = {
-                agent: self.num_moves >= NUM_ITERS for agent in self.agents
-            }
-
-            # observe the current state
-            for i in self.agents:
-                self.observations[i] = self.state[
-                    self.agents[1 - self.agent_name_mapping[i]]
-                ]
         else:
             # necessary so that observe() returns a reasonable observation at all times.
-            self.state[self.agents[1 - self.agent_name_mapping[agent]]] = None
+            self.agent_actions[
+                self.agents[1 - self.agent_name_mapping[agent]]
+            ] = None
             # no rewards are allocated until both players give an action
             self._clear_rewards()
