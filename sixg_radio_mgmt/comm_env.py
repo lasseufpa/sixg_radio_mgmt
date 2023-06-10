@@ -246,7 +246,7 @@ class CommunicationEnv(gym.Env):
         )
 
     def step(
-        self, sched_decision: np.ndarray
+        self, sched_decision: Union[np.ndarray, dict]
     ) -> Tuple[Union[np.ndarray, dict], Union[float, dict], bool, bool, dict]:
         """Apply the sched_decision obtained from agent in the environment.
 

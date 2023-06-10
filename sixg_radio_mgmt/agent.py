@@ -5,6 +5,8 @@ import numpy as np
 
 from .comm_env import CommunicationEnv
 
+from pettingzoo import AECEnv
+
 
 class Agent(ABC):
     """
@@ -40,7 +42,7 @@ class Agent(ABC):
 
     def __init__(
         self,
-        env: CommunicationEnv,
+        env: Union[CommunicationEnv, AECEnv],
         max_number_ues: int,
         max_number_basestations: int,
         num_available_rbs: np.ndarray,
