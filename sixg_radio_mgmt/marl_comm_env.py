@@ -73,11 +73,11 @@ class MARLCommEnv(AECEnv):
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = self._agent_selector.next()
 
-    def step(self, action):
+    def step(self, action: np.ndarray):
         # Multi-agent specific
         agent = self.agent_selection
         self._cumulative_rewards[agent] = 0
-        self.agent_actions[self.agent_selection] = action
+        self.agent_actions[self.agent_selection] = action  # type: ignore
 
         # Multi-agent specific
         if self._agent_selector.is_last():
@@ -99,3 +99,6 @@ class MARLCommEnv(AECEnv):
             ] = None
             # no rewards are allocated until both players give an action
             self._clear_rewards()
+
+        self.agent_selection = self._agent_selector.next()
+        self._accumulate_rewards()
