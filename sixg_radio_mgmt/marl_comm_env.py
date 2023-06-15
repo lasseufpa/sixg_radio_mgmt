@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Tuple, Type, Union, TypeVar
+from typing import Callable, Optional, Tuple, Type, TypeVar, Union
 
 import numpy as np
 from pettingzoo import AECEnv
@@ -63,6 +63,7 @@ class MARLCommEnv(AECEnv):
         obs, _ = self.comm_env.reset(seed=seed)
 
         # MARL variables
+        self.agents = self.possible_agents[:]
         self.rewards = {agent: 0 for agent in self.agents}
         self._cumulative_rewards = {agent: 0 for agent in self.agents}
         self.terminations = {agent: False for agent in self.agents}
@@ -81,7 +82,7 @@ class MARLCommEnv(AECEnv):
         self.agent_actions[self.agent_selection] = action  # type: ignore
 
         # Multi-agent specific
-        if self._agent_selector.is_last():
+        if self._agent_selector.is_last() and action is not None:
             # Single-agent specific
             (
                 self.observations,
@@ -93,6 +94,7 @@ class MARLCommEnv(AECEnv):
             self.rewards = rewards if isinstance(rewards, dict) else {}
             if termination:
                 self.terminations = {agent: True for agent in self.agents}
+                self.agents = []  # All agents are terminated together
         else:
             # necessary so that observe() returns a reasonable observation at all times.
             self.agent_actions[

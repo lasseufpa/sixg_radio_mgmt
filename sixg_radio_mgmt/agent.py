@@ -2,10 +2,9 @@ from abc import ABC, abstractmethod
 from typing import Union
 
 import numpy as np
+from pettingzoo import AECEnv
 
 from .comm_env import CommunicationEnv
-
-from pettingzoo import AECEnv
 
 
 class Agent(ABC):
