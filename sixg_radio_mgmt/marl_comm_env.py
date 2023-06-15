@@ -58,6 +58,7 @@ class MARLCommEnv(AECEnv):
         self,
         seed: Optional[int] = None,
         options: dict = {"initial_episode": -1},
+        return_info: bool = True,
     ):
         obs, _ = self.comm_env.reset(seed=seed)
 
@@ -68,7 +69,7 @@ class MARLCommEnv(AECEnv):
         self.truncations = {agent: False for agent in self.agents}
         self.infos = {agent: {} for agent in self.agents}
         self.agent_actions = {agent: None for agent in self.agents}
-        self.observations = {agent: obs for agent in self.agents}
+        self.observations = obs
         self.num_moves = 0
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = self._agent_selector.next()
