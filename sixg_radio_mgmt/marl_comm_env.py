@@ -40,16 +40,20 @@ class MARLCommEnv(AECEnv):
         self.num_moves = 0
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = self._agent_selector.next()
-        self.observation_spaces = (
-            self.comm_env.observation_space
-            if isinstance(self.comm_env.observation_space, dict)
-            else {}
-        )
-        self.action_spaces = (
-            self.comm_env.action_space
-            if isinstance(self.comm_env.action_space, dict)
-            else {}
-        )
+        try:
+            self.observation_spaces = (
+                self.comm_env.observation_space
+                if isinstance(self.comm_env.observation_space, dict | None)
+                else {}
+            )
+            self.action_spaces = (
+                self.comm_env.action_space
+                if isinstance(self.comm_env.action_space, dict | None)
+                else {}
+            )
+        except AttributeError:
+            self.observation_spaces = {}
+            self.action_spaces = {}
 
     def observe(self, agent: str) -> Optional[np.ndarray]:
         return np.array(self.observations[agent])
