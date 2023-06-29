@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 from typing import Union
 
 import numpy as np
-from pettingzoo import AECEnv
 
 from .comm_env import CommunicationEnv
+from .marl_comm_env import MARLCommEnv
 
 
 class Agent(ABC):
@@ -41,7 +41,7 @@ class Agent(ABC):
 
     def __init__(
         self,
-        env: Union[CommunicationEnv, AECEnv],
+        env: Union[CommunicationEnv, MARLCommEnv],
         max_number_ues: int,
         max_number_basestations: int,
         num_available_rbs: np.ndarray,
