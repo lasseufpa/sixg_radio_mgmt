@@ -100,10 +100,6 @@ class MARLCommEnv(AECEnv):
                 self.terminations = {agent: True for agent in self.agents}
                 self.agents = []  # All agents are terminated together
         else:
-            # necessary so that observe() returns a reasonable observation at all times.
-            self.agent_actions[
-                self.agents[1 - self.agent_name_mapping[agent]]
-            ] = None
             # no rewards are allocated until both players give an action
             self._clear_rewards()
 
