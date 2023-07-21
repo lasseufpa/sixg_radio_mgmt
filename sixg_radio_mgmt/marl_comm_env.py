@@ -1,62 +1,33 @@
 from typing import Callable, Optional, Tuple, Type, TypeVar, Union
 
+from gymnasium import spaces
 import numpy as np
 from pettingzoo import AECEnv
 from pettingzoo.utils import agent_selector, wrappers
+from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
-from .association import Association
-from .basestations import Basestations
-from .channel import Channel
 from .comm_env import CommunicationEnv
-from .metrics import Metrics
-from .mobility import Mobility
-from .slices import Slices
-from .traffic import Traffic
-from .ues import UEs
 
 
-class MARLCommEnv(AECEnv):
+class MARLCommEnv(MultiAgentEnv):
     def __init__(
         self,
         *args,
         **kwargs,
     ):
-        self.possible_agents = [
+        self.agents = {
             "player_" + str(r) for r in range(kwargs["number_agents"])
-        ]
+        }
         kwargs.pop("number_agents")
         self.comm_env = CommunicationEnv(*args, **kwargs)
-        self.agents = self.possible_agents[:]
-        self.agent_name_mapping = dict(
-            zip(self.possible_agents, list(range(len(self.possible_agents))))
-        )
-        self.agent_actions = {agent: None for agent in self.agents}
-        self.rewards = {agent: 0 for agent in self.agents}
-        self._cumulative_rewards = {agent: 0 for agent in self.agents}
-        self.terminations = {agent: False for agent in self.agents}
-        self.truncations = {agent: False for agent in self.agents}
-        self.infos = {agent: {} for agent in self.agents}
-        self.observations = {agent: None for agent in self.agents}
-        self.num_moves = 0
-        self._agent_selector = agent_selector(self.agents)
-        self.agent_selection = self._agent_selector.next()
-        try:
-            self.observation_spaces = (
-                self.comm_env.observation_space
-                if isinstance(self.comm_env.observation_space, dict | None)
-                else {}
-            )
-            self.action_spaces = (
-                self.comm_env.action_space
-                if isinstance(self.comm_env.action_space, dict | None)
-                else {}
-            )
-        except AttributeError:
-            self.observation_spaces = {}
-            self.action_spaces = {}
+        self.terminateds = set()
+        self.truncateds = set()
+        self._obs_space_in_preferred_format = True
+        self.observation_space = self.comm_env.observation_space
+        self._action_space_in_preferred_format = True
+        self.action_space = self.comm_env.action_space
 
-    def observe(self, agent: str) -> Optional[np.ndarray]:
-        return np.array(self.observations[agent])
+        super().__init__()
 
     def reset(
         self,
@@ -65,43 +36,25 @@ class MARLCommEnv(AECEnv):
         return_info: bool = True,
     ):
         obs, _ = self.comm_env.reset(seed=seed)
+        self.terminateds = set()
+        self.truncateds = set()
 
-        # MARL variables
-        self.agents = self.possible_agents[:]
-        self.rewards = {agent: 0 for agent in self.agents}
-        self._cumulative_rewards = {agent: 0 for agent in self.agents}
-        self.terminations = {agent: False for agent in self.agents}
-        self.truncations = {agent: False for agent in self.agents}
-        self.infos = {agent: {} for agent in self.agents}
-        self.agent_actions = {agent: None for agent in self.agents}
-        self.observations = obs
-        self.num_moves = 0
-        self._agent_selector = agent_selector(self.agents)
-        self.agent_selection = self._agent_selector.next()
+        return obs, {}
 
-    def step(self, action: np.ndarray):
-        # Multi-agent specific
-        agent = self.agent_selection
-        self._cumulative_rewards[agent] = 0
-        self.agent_actions[self.agent_selection] = action  # type: ignore
+    def step(self, action_dict):
+        obs, rewards, terminated, truncated, info = {}, {}, {}, {}, {}
+        (
+            self.observations,
+            rewards,
+            termination,
+            truncation,
+            info,
+        ) = self.comm_env.step(action_dict)
 
-        # Multi-agent specific
-        if self._agent_selector.is_last() and action is not None:
-            # Single-agent specific
-            (
-                self.observations,
-                rewards,
-                termination,
-                truncation,
-                info,
-            ) = self.comm_env.step(self.agent_actions)
-            self.rewards = rewards if isinstance(rewards, dict) else {}
-            if termination:
-                self.terminations = {agent: True for agent in self.agents}
-                self.agents = []  # All agents are terminated together
-        else:
-            # no rewards are allocated until both players give an action
-            self._clear_rewards()
+        if termination:
+            terminated = {agent: True for agent in self.agents}
+            truncated = {agent: True for agent in self.agents}
+        terminated["__all__"] = len(self.terminateds) == len(self.agents)
+        truncated["__all__"] = len(self.truncateds) == len(self.agents)
 
-        self.agent_selection = self._agent_selector.next()
-        self._accumulate_rewards()
+        return obs, rewards, terminated, truncated, info
