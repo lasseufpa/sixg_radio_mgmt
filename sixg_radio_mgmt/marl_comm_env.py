@@ -18,10 +18,9 @@ class MARLCommEnv(MultiAgentEnv):
         self.agents = {
             "player_" + str(r) for r in range(kwargs["number_agents"])
         }
+        self._agent_ids = set(self.agents)
         kwargs.pop("number_agents")
         self.comm_env = CommunicationEnv(*args, **kwargs)
-        self.terminateds = set()
-        self.truncateds = set()
         self._obs_space_in_preferred_format = True
         self.observation_space = self.comm_env.observation_space
         self._action_space_in_preferred_format = True
@@ -36,25 +35,23 @@ class MARLCommEnv(MultiAgentEnv):
         return_info: bool = True,
     ):
         obs, _ = self.comm_env.reset(seed=seed)
-        self.terminateds = set()
-        self.truncateds = set()
-
         return obs, {}
 
     def step(self, action_dict):
         obs, rewards, terminated, truncated, info = {}, {}, {}, {}, {}
         (
-            self.observations,
+            obs,
             rewards,
             termination,
             truncation,
             info,
         ) = self.comm_env.step(action_dict)
-
         if termination:
             terminated = {agent: True for agent in self.agents}
             truncated = {agent: True for agent in self.agents}
-        terminated["__all__"] = len(self.terminateds) == len(self.agents)
-        truncated["__all__"] = len(self.truncateds) == len(self.agents)
-
+            terminated["__all__"], truncated["__all__"] = True, True
+        else:
+            terminated = {agent: False for agent in self.agents}
+            truncated = {agent: False for agent in self.agents}
+            terminated["__all__"], truncated["__all__"] = False, False
         return obs, rewards, terminated, truncated, info
