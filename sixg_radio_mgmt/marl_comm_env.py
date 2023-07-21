@@ -1,7 +1,7 @@
 from typing import Callable, Optional, Tuple, Type, TypeVar, Union
 
-from gymnasium import spaces
 import numpy as np
+from gymnasium import spaces
 from pettingzoo import AECEnv
 from pettingzoo.utils import agent_selector, wrappers
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
