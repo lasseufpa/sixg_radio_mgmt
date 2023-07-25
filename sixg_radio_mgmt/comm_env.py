@@ -94,6 +94,7 @@ class CommunicationEnv(gym.Env):
         obs_space: Optional[Callable] = None,
         action_space: Optional[Callable] = None,
         debug: bool = True,
+        config_file_root_path: str = ".",
     ) -> None:
         """initializing the environment.
 
@@ -129,7 +130,9 @@ class CommunicationEnv(gym.Env):
             input/outputs verification. it should disabled in case you want
             to increase performance (decrease simulation time)
         """
-        with open(f"./env_config/{config_file}.yml") as file:
+        with open(
+            f"{config_file_root_path}/env_config/{config_file}.yml"
+        ) as file:
             data = yaml.safe_load(file)
 
         self.max_number_basestations = data["basestations"][
