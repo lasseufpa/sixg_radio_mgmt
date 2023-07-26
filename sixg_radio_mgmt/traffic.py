@@ -24,6 +24,7 @@ class Traffic(ABC):
         self,
         max_number_ues: int,
         rng: np.random.Generator = np.random.default_rng(),
+        root_path: str = "",
     ) -> None:
         """
         Parameters
@@ -33,6 +34,7 @@ class Traffic(ABC):
         """
         self.max_number_ues = max_number_ues
         self.rng = rng
+        self.root_path = root_path
 
     @abstractmethod
     def step(

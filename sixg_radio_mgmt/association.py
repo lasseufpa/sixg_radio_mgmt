@@ -34,6 +34,7 @@ class Association(ABC):
         max_number_basestations: int,
         max_number_slices: int,
         rng: np.random.Generator = np.random.default_rng(),
+        root_path: str = "",
     ) -> None:
         """
         Parameters
@@ -52,6 +53,7 @@ class Association(ABC):
         self.max_number_basestations = max_number_basestations
         self.max_number_slices = max_number_slices
         self.rng = rng
+        self.root_path = root_path
 
     @abstractmethod
     def step(

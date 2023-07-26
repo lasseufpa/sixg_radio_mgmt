@@ -34,6 +34,7 @@ class Channel(ABC):
         max_number_basestations: int,
         num_available_rbs: np.ndarray,
         rng: np.random.Generator = np.random.default_rng(),
+        root_path: str = "",
     ) -> None:
         """
         Parameters
@@ -49,6 +50,7 @@ class Channel(ABC):
         self.max_number_basestations = max_number_basestations
         self.num_available_rbs = num_available_rbs
         self.rng = rng
+        self.root_path = root_path
 
     @abstractmethod
     def step(
