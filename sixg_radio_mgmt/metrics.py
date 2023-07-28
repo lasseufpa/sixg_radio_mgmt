@@ -55,6 +55,7 @@ class Metrics:
             "sched_decision": [],
             "reward": [],
             "slice_req": [],
+            "obs": [],
         }
 
     def step(self, hist: dict) -> None:

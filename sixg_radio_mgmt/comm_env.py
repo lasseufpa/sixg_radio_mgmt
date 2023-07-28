@@ -318,7 +318,7 @@ class CommunicationEnv(gym.Env):
         obs = self.obs_space_format(step_hist)
         reward = self.calculate_reward(step_hist)
 
-        step_hist.update({"reward": reward})
+        step_hist.update({"reward": reward, "obs": obs})
         self.metrics_hist.step(step_hist)
 
         if self.step_number == self.max_number_steps:
