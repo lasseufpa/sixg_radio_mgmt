@@ -47,11 +47,18 @@ class MARLCommEnv(MultiAgentEnv):
             info,
         ) = self.comm_env.step(action_dict)
         if termination:
-            terminated = {agent: True for agent in self.agents}
-            truncated = {agent: True for agent in self.agents}
-            terminated["__all__"], truncated["__all__"] = True, True
+            if isinstance(action_dict, dict):
+                terminated = {agent: True for agent in self.agents}
+                truncated = {agent: True for agent in self.agents}
+                terminated["__all__"], truncated["__all__"] = True, True
+            else:
+                terminated, truncated = True, True
         else:
-            terminated = {agent: False for agent in self.agents}
-            truncated = {agent: False for agent in self.agents}
-            terminated["__all__"], truncated["__all__"] = False, False
+            if isinstance(action_dict, dict):
+                terminated = {agent: False for agent in self.agents}
+                truncated = {agent: False for agent in self.agents}
+                terminated["__all__"], truncated["__all__"] = False, False
+            else:
+                terminated = False
+                truncated = False
         return obs, rewards, terminated, truncated, info
