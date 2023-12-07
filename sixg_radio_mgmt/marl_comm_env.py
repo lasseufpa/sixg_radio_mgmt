@@ -34,6 +34,8 @@ class MARLCommEnv(MultiAgentEnv):
         options: dict = {"initial_episode": -1},
         return_info: bool = True,
     ):
+        if options is None:
+            options = {"initial_episode": -1}
         obs, _ = self.comm_env.reset(seed=seed, options=options)
         return obs, {}
 
