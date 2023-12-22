@@ -275,7 +275,7 @@ class CommunicationEnv(gym.Env):
             Tuple containing observation space, reward, end of episode
             bool and human info.
         """
-
+        # print(f"Episode: {self.episode_number}, Step: {self.step_number}")
         sched_decision = self.action_format(sched_decision)
 
         mobilities = self.mobility.step(self.step_number, self.episode_number)
@@ -376,7 +376,10 @@ class CommunicationEnv(gym.Env):
 
         if (
             (self.step_number == 0 and self.episode_number == 0)
-            or (self.episode_number == (self.max_number_episodes - 1))
+            or (
+                self.step_number == self.max_number_steps
+                and self.episode_number == (self.max_number_episodes - 1)
+            )
             or options["initial_episode"] != -1
         ):
             self.episode_number = (
@@ -384,6 +387,10 @@ class CommunicationEnv(gym.Env):
                 if options["initial_episode"] == -1
                 else options["initial_episode"]
             )
+        elif self.step_number == 0 and self.episode_number <= (
+            self.max_number_episodes - 1
+        ):
+            pass  # Calling many resets without stepping in the env does not change the episode value
         elif self.episode_number < (self.max_number_episodes - 1):
             self.episode_number += 1
         else:
