@@ -95,6 +95,7 @@ class CommunicationEnv(gym.Env):
         action_space: Optional[Callable] = None,
         debug: bool = True,
         root_path: str = ".",
+        initial_episode_number: int = 0,
     ) -> None:
         """initializing the environment.
 
@@ -191,8 +192,9 @@ class CommunicationEnv(gym.Env):
             else np.ones(self.max_number_ues) * 8192 * 8
         )  # In bits
 
+        self.initial_episode_number = initial_episode_number
         self.step_number = 0  # Initial simulation step
-        self.episode_number = 0  # Initial episode
+        self.episode_number = self.initial_episode_number  # Initial episode
         self.max_number_steps = data["simulation"][
             "max_number_steps"
         ]  # Maximum number of steps per simulated episode
@@ -383,7 +385,7 @@ class CommunicationEnv(gym.Env):
             or options["initial_episode"] != -1
         ):
             self.episode_number = (
-                0
+                self.initial_episode_number
                 if options["initial_episode"] == -1
                 else options["initial_episode"]
             )
