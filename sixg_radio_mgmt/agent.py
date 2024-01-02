@@ -43,6 +43,7 @@ class Agent(ABC):
         self,
         env: Union[CommunicationEnv, MARLCommEnv],
         max_number_ues: int,
+        max_number_slices: int,
         max_number_basestations: int,
         num_available_rbs: np.ndarray,
         seed: int = np.random.randint(1000),
@@ -59,6 +60,7 @@ class Agent(ABC):
         """
         self.env = env
         self.max_number_ues = max_number_ues
+        self.max_number_slices = max_number_slices
         self.max_number_basestations = max_number_basestations
         self.num_available_rbs = num_available_rbs
         self.seed = seed

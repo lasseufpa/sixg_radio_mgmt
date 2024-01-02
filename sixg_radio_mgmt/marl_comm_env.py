@@ -64,3 +64,27 @@ class MARLCommEnv(MultiAgentEnv):
                 terminated = False
                 truncated = False
         return obs, rewards, terminated, truncated, info
+
+    def set_agent_functions(
+        self,
+        obs_space_format: Optional[
+            Callable[[dict], Union[np.ndarray, dict]]
+        ] = None,
+        action_format: Optional[
+            Callable[[Union[np.ndarray, dict]], np.ndarray]
+        ] = None,
+        calculate_reward: Optional[
+            Callable[[dict], Union[float, dict]]
+        ] = None,
+        obs_space: spaces.Space = spaces.Space(),
+        action_space: spaces.Space = spaces.Space(),
+    ):
+        self.observation_space = obs_space
+        self.action_space = action_space
+        self.comm_env.set_agent_functions(
+            obs_space_format,
+            action_format,
+            calculate_reward,
+            obs_space,
+            action_space,
+        )

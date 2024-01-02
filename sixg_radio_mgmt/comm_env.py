@@ -91,8 +91,8 @@ class CommunicationEnv(gym.Env):
             Callable[[dict], Union[np.ndarray, dict]]
         ] = None,
         calculate_reward: Optional[Callable[[dict], float]] = None,
-        obs_space: Optional[Callable] = None,
-        action_space: Optional[Callable] = None,
+        obs_space: gym.spaces.Space = gym.spaces.Space(),
+        action_space: gym.spaces.Space = gym.spaces.Space(),
         debug: bool = True,
         root_path: str = ".",
         initial_episode_number: int = 0,
@@ -228,10 +228,8 @@ class CommunicationEnv(gym.Env):
         self.MobilityClass = MobilityClass
         self.AssociationClass = AssociationClass
 
-        if obs_space is not None:
-            self.observation_space = obs_space()
-        if action_space is not None:
-            self.action_space = action_space()
+        self.observation_space = obs_space
+        self.action_space = action_space
 
         self.create_scenario()
         # Update associations
@@ -445,7 +443,11 @@ class CommunicationEnv(gym.Env):
         calculate_reward: Optional[
             Callable[[dict], Union[float, dict]]
         ] = None,
+        obs_space: gym.spaces.Space = gym.spaces.Space(),
+        action_space: gym.spaces.Space = gym.spaces.Space(),
     ):
+        self.observation_space = obs_space
+        self.action_space = action_space
         self.obs_space_format = (
             obs_space_format
             if obs_space_format is not None
