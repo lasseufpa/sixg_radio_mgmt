@@ -15,12 +15,12 @@ class MARLCommEnv(MultiAgentEnv):
         *args,
         **kwargs,
     ):
+        self.comm_env = CommunicationEnv(*args, **kwargs)
         self.agents = {
-            "player_" + str(r) for r in range(kwargs["number_agents"])
+            "player_" + str(r)
+            for r in range(self.comm_env.max_number_slices + 1)
         }
         self._agent_ids = set(self.agents)
-        kwargs.pop("number_agents")
-        self.comm_env = CommunicationEnv(*args, **kwargs)
         self._obs_space_in_preferred_format = True
         self.observation_space = self.comm_env.observation_space
         self._action_space_in_preferred_format = True
