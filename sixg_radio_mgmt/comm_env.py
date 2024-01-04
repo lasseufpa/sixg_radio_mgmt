@@ -581,6 +581,7 @@ class CommunicationEnv(gym.Env):
             self.max_number_slices,
             self.np_random,
             root_path=self.root_path,
+            scenario_name=self.simu_name,
         )
         # Update associations
         (

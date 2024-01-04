@@ -35,6 +35,7 @@ class Association(ABC):
         max_number_slices: int,
         rng: np.random.Generator = np.random.default_rng(),
         root_path: str = "",
+        scenario_name: str = "",
     ) -> None:
         """
         Parameters
@@ -54,6 +55,7 @@ class Association(ABC):
         self.max_number_slices = max_number_slices
         self.rng = rng
         self.root_path = root_path
+        self.scenario_name = scenario_name
 
     @abstractmethod
     def step(
