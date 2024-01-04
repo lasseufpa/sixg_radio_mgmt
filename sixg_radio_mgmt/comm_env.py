@@ -622,6 +622,7 @@ class CommunicationEnv(gym.Env):
             self.num_available_rbs,
             rng=self.np_random,
             root_path=self.root_path,
+            scenario_name=self.simu_name,
         )
         self.traffic = self.TrafficClass(
             self.max_number_ues,

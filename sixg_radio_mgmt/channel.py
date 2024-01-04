@@ -35,6 +35,7 @@ class Channel(ABC):
         num_available_rbs: np.ndarray,
         rng: np.random.Generator = np.random.default_rng(),
         root_path: str = "",
+        scenario_name: str = "",
     ) -> None:
         """
         Parameters
@@ -51,6 +52,7 @@ class Channel(ABC):
         self.num_available_rbs = num_available_rbs
         self.rng = rng
         self.root_path = root_path
+        self.scenario_name = scenario_name
 
     @abstractmethod
     def step(
