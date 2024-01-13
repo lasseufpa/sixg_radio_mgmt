@@ -248,7 +248,7 @@ class CommunicationEnv(gym.Env):
         )
 
     def step(
-        self, sched_decision: Union[np.ndarray, dict]
+        self, sched_decision_ori: Union[np.ndarray, dict]
     ) -> Tuple[Union[np.ndarray, dict], Union[float, dict], bool, bool, dict]:
         """Apply the sched_decision obtained from agent in the environment.
 
@@ -276,7 +276,7 @@ class CommunicationEnv(gym.Env):
             bool and human info.
         """
         # print(f"Episode: {self.episode_number}, Step: {self.step_number}")
-        sched_decision = self.action_format(sched_decision)
+        sched_decision = self.action_format(sched_decision_ori)
 
         mobilities = self.mobility.step(self.step_number, self.episode_number)
         spectral_efficiencies = self.channel.step(
@@ -312,6 +312,7 @@ class CommunicationEnv(gym.Env):
                 "slice_ue_assoc": self.slices.ue_assoc,
                 "sched_decision": sched_decision,
                 "slice_req": self.slices.requirements,
+                "agent_action": sched_decision_ori,
             }
         )
         self.step_number += 1

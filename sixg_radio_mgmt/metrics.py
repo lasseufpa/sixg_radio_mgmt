@@ -56,6 +56,7 @@ class Metrics:
             "reward": [],
             "slice_req": [],
             "obs": [],
+            "agent_action": [],
         }
 
     def step(self, hist: dict) -> None:
@@ -139,6 +140,7 @@ class Metrics:
             "sched_decision": data.f.sched_decision,
             "reward": data.f.reward,
             "slice_req": data.f.slice_req,
+            "agent_action": data.f.agent_action,
         }
         return data_dict
 
