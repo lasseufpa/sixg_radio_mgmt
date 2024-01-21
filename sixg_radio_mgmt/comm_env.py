@@ -96,6 +96,7 @@ class CommunicationEnv(gym.Env):
         debug: bool = True,
         root_path: str = ".",
         initial_episode_number: int = 0,
+        max_episode_number: Optional[int] = None,
     ) -> None:
         """initializing the environment.
 
@@ -198,9 +199,11 @@ class CommunicationEnv(gym.Env):
         self.max_number_steps = data["simulation"][
             "max_number_steps"
         ]  # Maximum number of steps per simulated episode
-        self.max_number_episodes = data["simulation"][
-            "max_number_episodes"
-        ]  # Maximum number of simulated episodes
+        self.max_number_episodes = (
+            data["simulation"]["max_number_episodes"]
+            if max_episode_number is None
+            else max_episode_number
+        )  # Maximum number of simulated episodes
         self.hist_root_path = data["simulation"]["hist_root_path"]
         self.simu_name = data["simulation"]["simu_name"]
         self.mobility_size = 2  # X and Y axis
@@ -275,7 +278,7 @@ class CommunicationEnv(gym.Env):
             Tuple containing observation space, reward, end of episode
             bool and human info.
         """
-        # print(f"Episode: {self.episode_number}, Step: {self.step_number}")
+        print(f"Episode: {self.episode_number}, Step: {self.step_number}")
         sched_decision = self.action_format(sched_decision_ori)
 
         mobilities = self.mobility.step(self.step_number, self.episode_number)
