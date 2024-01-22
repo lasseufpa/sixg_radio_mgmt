@@ -278,7 +278,7 @@ class CommunicationEnv(gym.Env):
             Tuple containing observation space, reward, end of episode
             bool and human info.
         """
-        print(f"Episode: {self.episode_number}, Step: {self.step_number}")
+        # print(f"Episode: {self.episode_number}, Step: {self.step_number}")
         sched_decision = self.action_format(sched_decision_ori)
 
         mobilities = self.mobility.step(self.step_number, self.episode_number)
