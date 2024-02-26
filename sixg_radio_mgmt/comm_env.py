@@ -376,6 +376,15 @@ class CommunicationEnv(gym.Env):
         Union[np.ndarray, dict]
             Tuple containing observation space after reset the environment
         """
+        if seed is None and self.seed is not None:
+            seed = self.seed
+            self.seed = (
+                None  # we only set the seed at the beginning of the episode
+            )
+        elif seed is not None:
+            self.seed = (
+                None  # in case the seed is set, we forget the environment seed
+            )
         super().reset(seed=seed)
 
         if (
