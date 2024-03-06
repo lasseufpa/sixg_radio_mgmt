@@ -428,7 +428,12 @@ class CommunicationEnv(gym.Env):
             "basestation_ue_assoc": self.basestations.ue_assoc,
             "basestation_slice_assoc": self.basestations.slice_assoc,
             "slice_ue_assoc": self.slices.ue_assoc,
-            "sched_decision": [],
+            "sched_decision": np.array(
+                [
+                    np.zeros((self.max_number_ues, self.num_available_rbs[i]))
+                    for i in np.arange(self.max_number_basestations)
+                ]
+            ),
             "pkt_incoming": self.traffic.step(
                 self.slices.ue_assoc,
                 self.slices.requirements,

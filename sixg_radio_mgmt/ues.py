@@ -184,6 +184,9 @@ class UEs:
         dict
             Dictionary containing UEs step information
         """
+        assert np.all(
+            spectral_efficiencies >= 0
+        ), "Spectral efficiencies must be positive"
         pkt_throughputs = np.zeros(self.max_number_ues)
         for basestation in np.arange(len(sched_decision)):
             pkt_throughputs += self.get_pkt_throughputs(
@@ -198,19 +201,43 @@ class UEs:
         for i in np.arange(self.max_number_ues):
             self.buffers[i].receive_packets(pkt_incomings[i])
             self.buffers[i].send_packets(pkt_throughputs[i])
+
+        pkt_effective_thr = np.array(
+            [buffer.sent_packets for buffer in self.buffers]
+        )
+        buffer_occupancies = np.array(
+            [buffer.get_buffer_occupancy() for buffer in self.buffers]
+        )
+        buffer_latencies = np.array(
+            [buffer.get_avg_delay() for buffer in self.buffers]
+        )
+        dropped_pkts = np.array(
+            [buffer.dropped_packets for buffer in self.buffers]
+        )
+
+        assert np.all(buffer_occupancies >= 0) and np.all(
+            buffer_occupancies <= 1
+        ), "Buffer occupancies must be between 0 and 1"
+        assert np.all(
+            buffer_latencies >= 0
+        ), "Buffer latencies must be positive"
+        assert np.all(dropped_pkts >= 0), "Dropped packets must be positive"
+        assert np.all(
+            pkt_effective_thr >= 0
+        ), "Packet effective throughput must be positive"
+        assert np.all(
+            pkt_effective_thr <= pkt_throughputs
+        ), "Packet effective throughput must be less than or equal to packet throughput"
+        assert np.all(
+            pkt_throughputs >= 0
+        ), "Packet throughput must be positive"
+        assert np.all(pkt_incomings >= 0), "Packet incomings must be positive"
+
         return {
             "pkt_incoming": pkt_incomings,
             "pkt_throughputs": pkt_throughputs,
-            "pkt_effective_thr": np.array(
-                [buffer.sent_packets for buffer in self.buffers]
-            ),
-            "buffer_occupancies": np.array(
-                [buffer.get_buffer_occupancy() for buffer in self.buffers]
-            ),
-            "buffer_latencies": np.array(
-                [buffer.get_avg_delay() for buffer in self.buffers]
-            ),
-            "dropped_pkts": np.array(
-                [buffer.dropped_packets for buffer in self.buffers]
-            ),
+            "pkt_effective_thr": pkt_effective_thr,
+            "buffer_occupancies": buffer_occupancies,
+            "buffer_latencies": buffer_latencies,
+            "dropped_pkts": dropped_pkts,
         }
