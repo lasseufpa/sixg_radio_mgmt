@@ -98,6 +98,7 @@ class CommunicationEnv(gym.Env):
         initial_episode_number: int = 0,
         max_episode_number: Optional[int] = None,
         simu_name: Optional[str] = None,
+        save_hist: bool = True,
     ) -> None:
         """initializing the environment.
 
@@ -211,6 +212,7 @@ class CommunicationEnv(gym.Env):
             if simu_name is not None
             else data["simulation"]["simu_name"]
         )
+        self.save_hist = save_hist
         self.mobility_size = 2  # X and Y axis
         self.debug = debug
         self.seed = seed  # Requested by Stablebaselines agent
@@ -330,7 +332,7 @@ class CommunicationEnv(gym.Env):
         step_hist.update({"reward": reward, "obs": obs})
         self.metrics_hist.step(step_hist)
 
-        if self.step_number == self.max_number_steps:
+        if self.step_number == self.max_number_steps and self.save_hist:
             self.metrics_hist.save(
                 self.simu_name, self.agent_name, self.episode_number
             )
