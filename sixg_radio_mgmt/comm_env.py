@@ -97,6 +97,7 @@ class CommunicationEnv(gym.Env):
         root_path: str = ".",
         initial_episode_number: int = 0,
         max_episode_number: Optional[int] = None,
+        simu_name: Optional[str] = None,
     ) -> None:
         """initializing the environment.
 
@@ -205,7 +206,11 @@ class CommunicationEnv(gym.Env):
             else max_episode_number
         )  # Maximum number of simulated episodes
         self.hist_root_path = data["simulation"]["hist_root_path"]
-        self.simu_name = data["simulation"]["simu_name"]
+        self.simu_name = (
+            simu_name
+            if simu_name is not None
+            else data["simulation"]["simu_name"]
+        )
         self.mobility_size = 2  # X and Y axis
         self.debug = debug
         self.seed = seed  # Requested by Stablebaselines agent
