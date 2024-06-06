@@ -393,6 +393,10 @@ class CommunicationEnv(gym.Env):
             self.seed = (
                 None  # in case the seed is set, we forget the environment seed
             )
+
+        if options is None:
+            options = {"initial_episode": -1}
+
         super().reset(seed=seed)
 
         if (
