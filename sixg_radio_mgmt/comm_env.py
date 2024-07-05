@@ -1,4 +1,5 @@
 from typing import Callable, Optional, Tuple, Type, Union
+from itertools import cycle
 
 import gymnasium as gym
 import numpy as np
@@ -99,6 +100,7 @@ class CommunicationEnv(gym.Env):
         max_episode_number: Optional[int] = None,
         simu_name: Optional[str] = None,
         save_hist: bool = True,
+        enable_random_episodes: bool = False,
     ) -> None:
         """initializing the environment.
 
@@ -213,6 +215,15 @@ class CommunicationEnv(gym.Env):
             else data["simulation"]["simu_name"]
         )
         self.save_hist = save_hist
+        self.enable_random_episodes = enable_random_episodes
+        if self.enable_random_episodes:
+            shuffled_episodes = self.np_random.permutation(
+                np.arange(
+                    self.initial_episode_number, self.max_number_episodes
+                )
+            )
+            self.random_episodes_gen = cycle(shuffled_episodes)
+            self.episode_number = next(self.random_episodes_gen)
         self.mobility_size = 2  # X and Y axis
         self.debug = debug
         self.seed = seed  # Requested by Stablebaselines agent
@@ -396,34 +407,42 @@ class CommunicationEnv(gym.Env):
 
         if options is None:
             options = {"initial_episode": -1}
+        if options["initial_episode"] != -1:
+            self.initial_episode_number = options["initial_episode"]
 
         super().reset(seed=seed)
 
-        if (
-            (self.step_number == 0 and self.episode_number == 0)
-            or (
+        if not self.enable_random_episodes:
+            if (self.step_number == 0 and self.episode_number == 0) or (
                 self.step_number == self.max_number_steps
                 and self.episode_number == (self.max_number_episodes - 1)
-            )
-            or options["initial_episode"] != -1
-        ):
-            self.episode_number = (
-                self.initial_episode_number
-                if options["initial_episode"] == -1
-                else options["initial_episode"]
-            )
-        elif self.step_number == 0 and self.episode_number <= (
-            self.max_number_episodes - 1
-        ):
-            pass  # Calling many resets without stepping in the env does not change the episode value
-        elif self.episode_number < (self.max_number_episodes - 1):
-            self.episode_number += 1
-        else:
-            raise Exception(
-                "Episode number received a non expected value equals to {}.".format(
-                    self.episode_number
+                or options["initial_episode"] != -1
+            ):
+                self.episode_number = self.initial_episode_number
+            elif self.step_number == 0 and self.episode_number <= (
+                self.max_number_episodes - 1
+            ):
+                pass  # Calling many resets without stepping in the env does not change the episode value
+            elif self.episode_number < (self.max_number_episodes - 1):
+                self.episode_number += 1
+            else:
+                raise Exception(
+                    "Episode number received a non expected value equals to {}.".format(
+                        self.episode_number
+                    )
                 )
-            )
+        else:
+            if options["initial_episode"] != -1:
+                shuffled_episodes = self.np_random.permutation(
+                    np.arange(
+                        self.initial_episode_number, self.max_number_episodes
+                    )
+                )
+                self.random_episodes_gen = cycle(shuffled_episodes)
+                self.episode_number = next(self.random_episodes_gen)
+            if self.step_number == self.max_number_steps:
+                self.episode_number = next(self.random_episodes_gen)
+
         self.step_number = 0
 
         self.create_scenario()
