@@ -1,5 +1,5 @@
-from typing import Callable, Optional, Tuple, Type, Union
 from itertools import cycle
+from typing import Callable, Optional, Tuple, Type, Union
 
 import gymnasium as gym
 import numpy as np
