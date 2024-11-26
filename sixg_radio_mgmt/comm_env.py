@@ -189,7 +189,7 @@ class CommunicationEnv(gym.Env):
         self.max_buffer_pkts = (
             np.array(data["ues"]["max_buffer_pkts"])
             if data["ues"].get("max_buffer_pkts") is not None
-            else np.ones(self.max_number_ues) * 1024
+            else np.ones(self.max_number_ues) * 1024 * 10
         )
         self.pkt_sizes = (
             np.array(data["ues"]["pkt_sizes"])
